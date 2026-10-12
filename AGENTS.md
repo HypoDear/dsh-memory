@@ -14,6 +14,7 @@
 1. **任何写入前必须先向用户提出，并得到确认** —— 不允许静默写入
 2. 确认后按 [`SPEC.md`](./SPEC.md) 的格式写入 `memory/`
 3. 如果新增内容值得每个会话都看到，才更新本文件的索引
+4. **写完必须跑 `node sync.mjs`** —— 否则本机注入的仍是旧版（见下文「记忆库自身」）
 
 ---
 
@@ -46,6 +47,15 @@
 - **删文件前先确认没有别的东西依赖它** —— 软链接的源被删掉后，
   表面一切正常，直到下次重启才暴露（如 `link:` 安装的 bundle）。
 
+### 记忆库自身
+
+- ⚠️ **本仓库是公开的** —— 写入前默认全世界都能看到。
+  **绝不写入密钥、令牌、密码、个人隐私（姓名/电话/邮箱/账号 id）。**
+- **本机没有 git，改完必须用 `node sync.mjs` 拉取**，否则注入的是旧记忆。
+  详见 [`SPEC.md`](./SPEC.md#五本机接入)。
+- 改记忆文件名或摘要时要同步 **3 处**：本文件索引、`memory/README.md`、`manifest.json`。
+  改完跑 `node verify.mjs` 自检。
+
 ---
 
 ## 三、记忆索引
@@ -55,8 +65,8 @@
 | 文件 | 内容 |
 |---|---|
 | [`memory/workbuddy-integration.md`](./memory/workbuddy-integration.md) | WorkBuddy 接入：凭据、端点、签到、令牌寿命 |
-| [`memory/windows-scripting.md`](./memory/windows-scripting.md) | Windows 脚本坑：编码、URL 截断、软链接、引号 |
-| [`SPEC.md`](./SPEC.md) | 记忆规范：格式、命名、写入流程、本机接入 |
+| [`memory/windows-scripting.md`](./memory/windows-scripting.md) | Windows 脚本坑：cmd 编码、URL 截断、软链接验证、引号陷阱 |
+| [`SPEC.md`](./SPEC.md) | 记忆规范：格式、命名、流程、同步、已知缺陷 |
 | [`memory/README.md`](./memory/README.md) | 记忆目录说明与待写清单 |
 
 ---
@@ -65,3 +75,6 @@
 
 本机的 `~/.dsh/AGENTS.md` 应指向本仓库（当前为**软链接**），使 agent 每次会话都读到这份记忆。
 具体方式见 [`SPEC.md`](./SPEC.md#五本机接入)。
+
+⚠️ 软链接只解决「指向」，**不解决「拉取」** —— 远程 push 后本地不会自动更新。
+必须 `node sync.mjs`。

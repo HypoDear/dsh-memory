@@ -20,7 +20,7 @@
       "slug": "spec",
       "file": "SPEC.md",
       "title": "SPEC（记忆规范）",
-      "summary": "格式、命名、写入流程、本机接入",
+      "summary": "格式、命名、流程、同步、已知缺陷",
       "tags": ["规范"]
     }
   ],
@@ -29,7 +29,7 @@
       "slug": "workbuddy-integration",
       "file": "memory/workbuddy-integration.md",
       "title": "WorkBuddy 接入（脱离桌面端）",
-      "summary": "凭据、端点、签到与令牌寿命",
+      "summary": "凭据、端点、签到、令牌寿命",
       "tags": ["workbuddy", "credential", "oauth"]
     },
     {
