@@ -15,7 +15,7 @@
 **存得越多，读到旧内容的风险越大**。指针几乎不变，因此永远不过时。
 
 ```
-~/.dsh/AGENTS.md   →  一行指针，指向 GitHub  →  mcp__github__get_file_contents
+~/.dsh/AGENTS.md   →  一行指针，指向 GitHub  →  read_mcp_resource
 ```
 
 **② 入口要短，细节下沉。**
@@ -48,8 +48,9 @@ dsh-memory/                     ← GitHub 上的仓库（唯一真相源）
 └── .github/workflows/pages.yml   # Pages 部署
 ```
 
-> `sync.mjs` / `push.mjs` / `verify.mjs` 已**不再需要**（见第八节）。
-> 它们仍可在 git 历史里找到；保留与否由用户决定。
+> 早期的 `sync.mjs` / `push.mjs` / `verify.mjs` **已删除**（见第八节）。
+> 「写入即发布」之后，本机既没有副本可同步，也没有副本可校验。
+> 它们只在 git 历史里保留。
 
 ---
 
@@ -139,11 +140,45 @@ agent 发现值得记的内容
 
 `~/.dsh/AGENTS.md` 会被 DSH 自动注入上下文。它只写一件事：**去 GitHub 读**。
 
-```js
-mcp__github__get_file_contents(owner="HypoDear", repo="dsh-memory", path="AGENTS.md")
+```
+read_mcp_resource(server="github",
+                  uri="repo://HypoDear/dsh-memory/contents/AGENTS.md")
 ```
 
-拿到入口后，按其中的索引继续读 `memory/*.md`。
+拿到入口后，按其中的索引继续读 `memory/*.md` —— 把路径接到 `contents/` 后面：
+
+```
+repo://HypoDear/dsh-memory/contents/memory/<slug>.md
+```
+
+#### ⚠️ 必须用 `read_mcp_resource`，不能用 `get_file_contents`
+
+`mcp__github__get_file_contents` 把文件内容作为 **MCP「嵌入式资源块」**
+（`type: "resource"`）返回。DSH 的内容投影**不支持该块类型**，只会输出一句占位：
+
+```
+[embedded resource unsupported; raw resource data remains available to programmatic callers]
+```
+
+后果：调用**看起来成功**（还带着正确的 SHA），但**正文一个字都进不了模型上下文**。
+实测 4 个文件（`AGENTS.md`、`README.md`、`memory/README.md`、`memory/_template.md`）
+全部如此。
+
+`read_mcp_resource` 走的是 GitHub MCP 的 `repository_content` **资源模板**
+（`repo://{owner}/{repo}/contents{/path*}`），返回的是普通文本，正常可见。
+
+> **工具成功返回 ≠ 内容可见。** 指针方案把「读记忆」押在单次调用上，
+> 所以必须押在真的能把正文送达的那个工具上。
+
+#### 备用路径
+
+MCP 未挂载时，用 `web_fetch` 直接取原始文件：
+
+```
+https://raw.githubusercontent.com/HypoDear/dsh-memory/main/AGENTS.md
+```
+
+代价是绕开 MCP、需要网络，且不受 MCP 的鉴权与限流保护。
 
 ### 人
 
@@ -203,6 +238,14 @@ mcp__github__get_file_contents(owner="HypoDear", repo="dsh-memory", path="AGENTS
 
 **取舍**：用「多一次 MCP 调用 + 需要网络」换掉「读到旧记忆」这个真实发生过的故障。
 
+### 后续修正：读取工具也踩过一次坑
+
+改成指针后，指针最初教的是 `get_file_contents` —— 而该工具在 DSH 里
+**交付不了正文**（见[第五节](#五读取路径)）。故障从「本地副本过时」
+换了个位置变成「读取工具选错」，症状同样是**静默读到空**。
+
+教训：指针方案的每一步都要**验证内容真的到达**，不能只看调用成功。
+
 ---
 
 ## 九、已知限制
@@ -210,7 +253,8 @@ mcp__github__get_file_contents(owner="HypoDear", repo="dsh-memory", path="AGENTS
 | 限制 | 影响 | 缓解 |
 |---|---|---|
 | 需要网络 | 离线时读不到记忆 | 核心铁律可在指针里再重申一两条 |
-| 需要 GitHub MCP | MCP 未挂载时读不到 | 指针里写清楚依赖 |
+| 需要 GitHub MCP | MCP 未挂载时读不到 | 指针里写清楚依赖；备用 `web_fetch` |
+| 读取工具易踩坑 | 用错工具会**静默**读不到正文 | 第五节写明必须用 `read_mcp_resource` |
 | 多一次工具调用 | 每会话略多 token | 入口保持精简 |
 | 三处清单需手工同步 | 易漏（曾出现 README 漏列自己） | 目前无校验器（原 `verify.mjs` 已随本地副本一同废弃） |
 | 无 CI 自动校验 | 依赖人工 | 可加 GitHub Action |

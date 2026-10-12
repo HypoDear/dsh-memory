@@ -2,7 +2,7 @@
 
 DeepSeek Harness 的**长期记忆库** —— 把开发经验、环境事实、踩过的坑集中放在一处，供 AI agent 在新会话中读取，也供人随时查阅。
 
-- 📖 **在线阅读**：启用 GitHub Pages 后见仓库设置
+- 📖 **在线阅读**：https://hypodear.github.io/dsh-memory/
 - 🤖 **Agent 入口**：[AGENTS.md](./AGENTS.md)
 - 📐 **写入规范**：[SPEC.md](./SPEC.md)
 
@@ -13,39 +13,35 @@ DeepSeek Harness 的**长期记忆库** —— 把开发经验、环境事实、
 AI agent 默认**没有跨会话记忆** —— 每次新会话都是空白。这个仓库用纯 Markdown 补上这一环：
 
 ```
-~/.dsh/AGENTS.md          ← 本机入口（指向本仓库）
+~/.dsh/AGENTS.md          ← 本机指针（只写「去哪读」，几乎不变）
         ↓
-   本仓库 memory/*.md      ← 真正的记忆内容
+   本仓库 AGENTS.md         ← 记忆入口（第一层）
+        ↓
+   本仓库 memory/*.md       ← 记忆正文（第二层）
         ↓
    index.html (Pages)      ← 人可读的浏览界面
 ```
 
-同时它便于：
-
-- 在任何设备上 `git clone` 得到同一份记忆
-- 用浏览器直接查看（无需装任何东西）
-- 用 Git 历史回溯每条经验是什么时候、为什么加的
+**远端是唯一真相源。** 本机不保存正文，所以不存在「本地副本忘了拉取」这个故障 ——
+这是本库最重要的设计决定，理由见 [SPEC.md](./SPEC.md#八设计演变为什么放弃了本地副本)。
 
 ## 目录结构
 
 | 路径 | 作用 |
 |---|---|
 | `AGENTS.md` | 记忆入口。短、高价值、每次会话都会被注入 |
-| `SPEC.md` | 记忆文件的规范：命名、格式、写入流程 |
+| `SPEC.md` | 记忆文件的规范：命名、格式、写入流程、读取方式 |
 | `manifest.json` | 网页阅读器的目录清单 |
 | `index.html` | 单文件阅读器（GitHub Pages 提供） |
 | `memory/` | 记忆正文，按主题分文件 |
 
 ## 怎么用
 
-```bash
-git clone https://github.com/HypoDear/dsh-memory.git
-```
+**作为 AI 记忆**：在本机 `~/.dsh/AGENTS.md` 放一份指针，DSH 每次会话会自动注入它。
+指针内容与读取方式见 [SPEC.md](./SPEC.md#五读取路径)。
 
-**作为 AI 记忆**：把本机的 `~/.dsh/AGENTS.md` 指向本仓库（软链接或复制），详见 [SPEC.md](./SPEC.md#五本机接入)。
-
-**改了记忆之后**：本机没有 git，必须跑 `node sync.mjs` 把远程拉回本地，否则注入的仍是旧版。
-`node verify.mjs` 可自检一致性。
+**改了记忆之后**：**没有后续步骤** —— 用 GitHub MCP 写入即发布。
+本机没有 git、没有副本、没有同步脚本。
 
 **作为个人参考**：直接看 Pages 站点。
 
