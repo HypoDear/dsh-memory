@@ -20,7 +20,7 @@
       "slug": "spec",
       "file": "SPEC.md",
       "title": "SPEC（记忆规范）",
-      "summary": "格式、命名、流程、同步、已知缺陷",
+      "summary": "格式、命名、流程、读取、已知限制",
       "tags": ["规范"]
     }
   ],
