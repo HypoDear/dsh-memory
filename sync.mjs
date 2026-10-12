@@ -7,7 +7,7 @@
  * 结果是：远程 push 了 → 本地永不更新 → 而 `~/.dsh/AGENTS.md` 是指向本地的
  * 软链接 → **注入给 agent 的永远是旧记忆**。
  *
- * 这个脚本用 GitHub 的 raw 端点补上“拉取”这一环，闭合记忆库的自我更新。
+ * 这个脚本用 GitHub 的 raw 端点补上「拉取」这一环，闭合记忆库的自我更新。
  *
  * 用法:
  *   node sync.mjs             # 拉取并覆盖本地
@@ -28,9 +28,9 @@ const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}`
 /**
  * 仓库里**永远存在**的固定文件。
  *
- * ⚠️ 这里刻意只放“结构性”文件 —— 记忆正文**不写死**。
+ * ⚠️ 这里刻意只放「结构性」文件 —— 记忆正文**不写死**。
  *    早先版本把记忆文件硬编码在这个列表里，结果新增记忆后本地永远同步不到，
- *    而脚本还报“成功”。记忆文件改为从 manifest.json 动态发现（见 discoverFiles）。
+ *    而脚本还报「成功」。记忆文件改为从 manifest.json 动态发现（见 discoverFiles）。
  */
 const STRUCTURAL_FILES = [
   'AGENTS.md',
@@ -52,15 +52,53 @@ const ROOT = import.meta.dirname ?? process.cwd()
 const norm = (s) => s.replace(/\r\n/g, '\n').trim()
 
 /**
+ * 请求头，尽量带上 token。
+ *
+ * ⚠️ 认证很重要：匿名调 GitHub API 每小时只有 **60 次**
+ *    （实测本机曾降到 7 次），反复同步很容易被限流成 HTTP 403。
+ *    带 token 的额度是 **5000/小时**。
+ *    token 只进请求头，**绝不写入仓库、绝不打印**。
+ */
+function authHeaders() {
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'dsh-memory-sync',
+  }
+  for (const name of ['MCP_GITHUB_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN']) {
+    const v = process.env[name]
+    if (typeof v === 'string' && v.trim() !== '') {
+      headers.Authorization = `Bearer ${v.trim()}`
+      break
+    }
+  }
+  return headers
+}
+
+/**
  * 取 main 的当前 commit sha。
  *
  * ⚠️ 必须 pin 到 commit 再读：raw CDN 会缓存，直接读 `main` 有可能拿到**旧内容**
  *    （已被实测证实：`memory/README.md` 曾返回过期版本）。
  */
 async function currentCommitSha() {
+  const headers = authHeaders()
   const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}`, {
-    headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'dsh-memory-sync' },
+    headers,
+    cache: 'no-store',
   })
+
+  if (res.status === 403 || res.status === 429) {
+    const remaining = res.headers.get('x-ratelimit-remaining')
+    const resetAt = Number(res.headers.get('x-ratelimit-reset') ?? 0)
+    const mins = resetAt > 0 ? Math.ceil((resetAt * 1000 - Date.now()) / 60000) : 0
+    throw new Error(
+      `GitHub API 限流（HTTP ${res.status}${remaining !== null ? `，剩余 ${remaining}` : ''}）。` +
+        (headers.Authorization
+          ? '已带 token 仍被限流，请稍后重试。'
+          : '未检测到 token —— 匿名额度只有 60 次/小时。请设置 MCP_GITHUB_TOKEN 后重试。') +
+        (mins > 0 ? ` 约 ${mins} 分钟后重置。` : ''),
+    )
+  }
   if (!res.ok) throw new Error(`取 commit sha 失败：HTTP ${res.status}`)
   const j = await res.json()
   const sha = j?.sha
@@ -68,8 +106,16 @@ async function currentCommitSha() {
   return sha
 }
 
+/**
+ * 拉一个文件。
+ *
+ * 走 raw 端点（不计入 API 限流），token 一并带上 —— 仓库若将来改回私有也仍可读。
+ */
 async function fetchFile(sha, path) {
-  const res = await fetch(`${RAW}/${sha}/${path}`, { cache: 'no-store' })
+  const res = await fetch(`${RAW}/${sha}/${path}`, {
+    headers: authHeaders(),
+    cache: 'no-store',
+  })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return await res.text()
 }
