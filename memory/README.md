@@ -10,22 +10,22 @@
 
 | 文件 | 主题 |
 |---|---|
+| [`workbuddy-integration.md`](./workbuddy-integration.md) | WorkBuddy 接入：凭据、端点、签到、令牌寿命 |
+| [`windows-scripting.md`](./windows-scripting.md) | Windows 脚本坑：编码、URL 截断、软链接、引号 |
 | [`_template.md`](./_template.md) | 格式模板（不是记忆本身） |
-
-> 目前只有模板。正文待写 —— 见下面的待写清单。
 
 ---
 
 ## 待写清单
 
-以下主题已经过验证、值得记录，但**尚未落库**。按规范，每条写入前需与用户确认。
+以下主题已验证、值得记录，但**尚未落库**。写入前需与用户确认。
 
-| 计划文件 | 主题 | 来源 |
+| 计划文件 | 主题 | 状态 |
 |---|---|---|
-| `dsh-bundle-patch.md` | bundle patch 的 `insert:` 陷阱（新增条目被静默丢弃） | 两台 MCP 都不出现的根因 |
-| `dsh-session-management.md` | 会话存储结构与正确删除方式（3 处） | 删除会话时整理 |
-| `local-environment.md` | 本机环境事实（无 git、pwsh 路径、Python/Node 位置） | 多次排查得出 |
-| `windows-scripting.md` | Windows 脚本的坑（codepage、回收站、路径） | `.cmd` 乱码事故 |
+| `dsh-bundle-patch.md` | bundle patch 的 `insert:` 陷阱 | 待确认 |
+| `dsh-session-management.md` | 会话存储结构与正确删除方式（3 处） | 待确认 |
+
+> 已评估后*不*记录：本机环境事实（变化太快，验证成本高于收益）。
 
 ---
 

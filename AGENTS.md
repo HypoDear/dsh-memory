@@ -24,7 +24,7 @@
 ### 环境
 
 - **本机没有 `git`** —— 不能用 `git` 命令行。需要操作 GitHub 时使用 GitHub MCP 工具。
-- **`pwsh` 工具可用**（PowerShell 7.6.6，位于 `C:\Program Files\PowerShell\7\pwsh.exe`）。
+- **`pwsh` 工具可用**（PowerShell 7.6.6，`C:\Program Files\PowerShell\7\pwsh.exe`）。
   若再次出现退出码 `3221225794`（`0xC0000142` = `STATUS_DLL_INIT_FAILED`），
   优先检查该路径是否仍是 PATH 中的第一项。
 - **改完环境变量必须重启 DSH** —— 运行中的进程读不到用户级环境变量的改动。
@@ -54,13 +54,14 @@
 
 | 文件 | 内容 |
 |---|---|
+| [`memory/workbuddy-integration.md`](./memory/workbuddy-integration.md) | WorkBuddy 接入：凭据、端点、签到、令牌寿命 |
+| [`memory/windows-scripting.md`](./memory/windows-scripting.md) | Windows 脚本坑：编码、URL 截断、软链接、引号 |
 | [`SPEC.md`](./SPEC.md) | 记忆规范：格式、命名、写入流程、本机接入 |
 | [`memory/README.md`](./memory/README.md) | 记忆目录说明与待写清单 |
-| [`memory/_template.md`](./memory/_template.md) | 记忆文件格式模板 |
 
 ---
 
 ## 四、本机接入
 
-本机的 `~/.dsh/AGENTS.md` 应指向本仓库，使 agent 每次会话都读到这份记忆。
-具体方式（软链接或复制）见 [`SPEC.md`](./SPEC.md#本机接入)。
+本机的 `~/.dsh/AGENTS.md` 应指向本仓库（当前为**软链接**），使 agent 每次会话都读到这份记忆。
+具体方式见 [`SPEC.md`](./SPEC.md#五本机接入)。
