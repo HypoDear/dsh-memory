@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "updated": "2026-10-12",
+  "docs": [
+    {
+      "slug": "readme",
+      "file": "README.md",
+      "title": "首页",
+      "summary": "这是什么、怎么用"
+    },
+    {
+      "slug": "agents",
+      "file": "AGENTS.md",
+      "title": "AGENTS.md（记忆入口）",
+      "summary": "铁律与索引 —— 每次会话都会被注入"
+    },
+    {
+      "slug": "spec",
+      "file": "SPEC.md",
+      "title": "SPEC（记忆规范）",
+      "summary": "格式、命名、写入流程、本机接入"
+    }
+  ],
+  "memories": []
+}
