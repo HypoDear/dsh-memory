@@ -4,18 +4,29 @@
 
 ---
 
-## 一、两条基本原则
+## 一、三条基本原则
 
-**① 入口要短，细节下沉。**
+**① 记忆只有一份，在远端。**
 
-`AGENTS.md` 注入到**每一次**会话，它的长度就是每个会话的固定开销。所以分两层：
+本机**不保存记忆正文**。`~/.dsh/AGENTS.md` 是一个**极小的稳定指针**，
+只告诉 agent「去哪读」，不携带内容。
+
+如此做的原因是：本机没有 git，本地副本永远不会自动更新 ——
+**存得越多，读到旧内容的风险越大**。指针几乎不变，因此永远不过时。
+
+```
+~/.dsh/AGENTS.md   →  一行指针，指向 GitHub  →  mcp__github__get_file_contents
+```
+
+**② 入口要短，细节下沉。**
 
 | 层 | 文件 | 判据 | 长度 |
 |---|---|---|---|
-| 一 | `AGENTS.md` | 「不知道就会做错事」 | 目标 < 200 行 |
+| 指针 | `~/.dsh/AGENTS.md`（本地） | 只写「去哪读」 | ~40 行，几乎不变 |
+| 一 | 仓库的 `AGENTS.md` | 「不知道就会做错事」 | 目标 < 200 行 |
 | 二 | `memory/*.md` | 「想查细节时才需要」 | 不限 |
 
-**② 写入前必须确认。**
+**③ 写入前必须确认。**
 
 任何落库都由 agent 先提议、用户确认后才执行。禁止静默写入。流程见[第四节](#四写入流程)。
 
@@ -24,19 +35,21 @@
 ## 二、目录结构
 
 ```
-dsh-memory/
+dsh-memory/                     ← GitHub 上的仓库（唯一真相源）
 ├── README.md          # 门面：这是什么、怎么用
 ├── AGENTS.md          # 记忆入口（第一层）
 ├── SPEC.md            # 本文件：规范
 ├── manifest.json      # 网页阅读器的目录清单
 ├── index.html         # 单文件阅读器（GitHub Pages）
-├── sync.mjs           # 拉取同步（本机无 git 时的替代）
-├── verify.mjs         # 一致性自检（链接/锚点/清单）
-└── memory/            # 记忆正文（第二层）
-    ├── README.md      # 目录说明 + 待写清单
-    ├── _template.md   # 格式模板
-    └── <slug>.md
+├── memory/            # 记忆正文（第二层）
+│   ├── README.md      # 目录说明 + 待写清单
+│   ├── _template.md   # 格式模板
+│   └── <slug>.md
+└── .github/workflows/pages.yml   # Pages 部署
 ```
+
+> `sync.mjs` / `push.mjs` / `verify.mjs` 已**不再需要**（见第八节）。
+> 它们仍可在 git 历史里找到；保留与否由用户决定。
 
 ---
 
@@ -92,13 +105,13 @@ agent 发现值得记的内容
         ↓
 ② 用户确认 / 修改 / 否决
         ↓
-③ 写入 memory/，更新 manifest.json，必要时更新 AGENTS.md 索引
+③ 用 GitHub MCP 写入 memory/，更新 manifest.json，必要时更新 AGENTS.md 索引
         ↓
-④ 推送，然后 **必须跑 `node sync.mjs`** 拉回本地，再跑 `node verify.mjs` 自检
+④ 完成 —— 无需任何本地同步步骤
 ```
 
-⚠️ **第 ④ 步最容易漏。** 本机没有 git，推送与拉取是两件独立的事 ——
-只推送不拉取，本地（也就是注入给 agent 的那份）仍是旧版。
+✅ **新方案的优点**：写入即是发布。没有「推了但没拉」的中间状态，
+因为本地根本没有副本。
 
 ### 什么值得记
 
@@ -120,72 +133,30 @@ agent 发现值得记的内容
 
 ---
 
-## 五、本机接入
+## 五、读取路径
 
-让 agent 读到这份记忆。有两条链路，**都必须走通**。
+### Agent
 
-### 链路一：入口注入（软链接）
+`~/.dsh/AGENTS.md` 会被 DSH 自动注入上下文。它只写一件事：**去 GitHub 读**。
 
-`~/.dsh/AGENTS.md` → 本仓库的 `AGENTS.md`。
-
-```powershell
-# 备份已有入口（若有）
-Move-Item "$env:USERPROFILE\.dsh\AGENTS.md" `
-          "$env:USERPROFILE\.dsh\AGENTS.md.bak" -ErrorAction SilentlyContinue
-
-# 建立软链接（路径按实际仓库位置替换）
-New-Item -ItemType SymbolicLink `
-  -Path   "$env:USERPROFILE\.dsh\AGENTS.md" `
-  -Target "<仓库路径>\AGENTS.md"
+```js
+mcp__github__get_file_contents(owner="HypoDear", repo="dsh-memory", path="AGENTS.md")
 ```
 
-需管理员权限或「开发者模式」。验证：`Test-Path "$env:USERPROFILE\.dsh\AGENTS.md"`。
+拿到入口后，按其中的索引继续读 `memory/*.md`。
 
-### 链路二：拉取同步 ⚠️ 最容易断的一环
+### 人
 
-**本机没有 `git`** —— `git clone` / `git pull` 在这台机器上**根本无法执行**。
-所以远程 push 之后，本地**不会自动更新**，而入口软链接指向的正是本地文件。
-结果：**远程是最新的，注入给 agent 的却是旧版。**
-
-替代手段是本仓库自带的 `sync.mjs`（走 GitHub raw，无需 git）：
-
-```powershell
-cd <仓库路径>
-node sync.mjs            # 拉取并覆盖本地（覆盖前会备份到 .backup/）
-node sync.mjs --check    # 只检查差异，有差异退出码 1
-node sync.mjs --dry-run  # 只看差异，不写
-```
-
-⚠️ **需要 token**：匿名调 GitHub API 只有 60 次/小时，容易被限流成 403。
-脚本会读 `MCP_GITHUB_TOKEN` / `GITHUB_TOKEN` / `GH_TOKEN`（带 token 为 5000/小时）。
-
-⚠️ **`sync.mjs` 会用远程版本覆盖本地**。若你刚在本地改了文件但**还没推送**，
-覆盖会丢失那些编辑 —— 所以它现在会先把本地原文备份进 `.backup/<时间戳>/`。
-**正确顺序永远是：先推送，再同步。**
-
-### 生效时机
-
-| | |
-|---|---|
-| ✅ 新建会话 | 一定读到最新 |
-| ⚠️ 会话进行中改文件 | 实测 DSH **可能会**推更新通知，但**不保证**、时机不可控 |
-| ✅ 可靠做法 | 改完 `sync.mjs`，然后**新开会话** |
+📖 https://hypodear.github.io/dsh-memory/
 
 ---
 
-## 六、多设备同步
+## 六、多设备
 
-```bash
-git clone https://github.com/HypoDear/dsh-memory.git
-# 每台设备按第五节建立指向
-```
+**天然多设备** —— 任何装了 DSH + GitHub MCP 的机器，只需一份相同的
+`~/.dsh/AGENTS.md` 指针，就能读到同一份记忆。无需 clone、无需同步、无需 git。
 
-> ⚠️ **仅在装有 git 的设备上可用。** 本机没有 git，只能跑 `sync.mjs`。
-
-- 记忆以**追加**为主，冲突通常可手工合并
-- 写入前建议先 `git pull`
-- 各设备的软链接路径不同，**不要把软链接本身提交进仓库**
-- `.backup/` 是本地产物，**不要提交**
+各设备的指针内容完全一致，可以直接复制。
 
 ---
 
@@ -193,27 +164,53 @@ git clone https://github.com/HypoDear/dsh-memory.git
 
 - **过时的记忆标 `状态：已过时`，不要删** —— 推理过程有价值
 - 定期复核「验证方式」是否仍成立
-- 改完记忆**必须跑 `node sync.mjs`** —— 否则本机注入的仍是旧版
 - **清单有三处需要同步**，改记忆文件名/摘要时要一起改：
   1. `AGENTS.md` 的索引表
   2. `memory/README.md` 的现有记忆表
   3. `manifest.json` 的 `memories` 数组（决定网页显示）
-- 改完跑 `node verify.mjs` 自检
-- `manifest.json` 的 `updated` 字段应随内容变更更新
 - Pages 站点是**只读**浏览界面，不承担编辑职责
 
 ---
 
-## 八、已知缺陷（待改进）
+## 八、设计演变（为什么放弃了本地副本）
 
-诚实记录，避免下次重蹈：
+### 曾经的方案
 
-| 缺陷 | 影响 | 状态 |
+`~/.dsh/AGENTS.md` → 软链接 → `Documents/dsh-memory/AGENTS.md`（本地 clone）。
+
+远端更新后跑 `sync.mjs` 拉回本地。
+
+### 实测发现的问题
+
+一次独立评审用真实会话验证，得到结论：
+
+> **注入给 agent 的 `AGENTS.md` 是旧版** —— 软链接本身正确，
+> 但它指向的本地仓库没同步。本地 `memory/` 里根本没有新记忆文件。
+> **若只靠「注入 + 本地文件」作答，测试会 100% 失败。**
+
+根因：**本机没有 git**。SPEC 教的是 `git pull`，但根本执行不了。
+于是「远端 push → 本地永不更新 → 注入旧记忆」成为默认状态。
+
+### 当前方案为何更好
+
+| 维度 | 本地副本 + 同步 | 指针（当前） |
 |---|---|---|
-| 无 git，同步靠手工 | 远程更新不会自动到本地，注入可能过期 | 已提供 `sync.mjs` |
-| **推送与拉取是两步，易漏** | 只推送不拉取 → 本地仍是旧版（**实际踩过**） | 已写入流程第 ④ 步 |
-| `sync.mjs` 会覆盖本地 | 未推送的本地编辑会丢（**实际踩过**） | 已加 `.backup/` 备份 |
-| 三处清单需手工同步 | 易漏（曾出现 README 漏列自己） | 已由 `verify.mjs` 检查 |
-| 锚点算法需与 GitHub 对齐 | 不一致则站内链接必有一边是死的 | 已对齐（见 `index.html` 的 `slug()`） |
-| 标点规范缺失 | 曾出现繁简混排（`損`） | 已补规范 |
-| 无 CI 自动校验 | `verify.mjs` 需人工运行 | **未解决**（可加 GitHub Action） |
+| 读到旧内容的风险 | **高**（靠人记得跑 sync） | **无**（指针几乎不变） |
+| 需要的工具 | sync/push/verify 三个脚本 | 零 |
+| 读取步数 | 1（本地文件） | 2（GitHub MCP，多一次调用） |
+| 离线可用 | ✅ | ❌（需要网络） |
+| token 成本 | 低 | 略高（多一次 MCP 调用） |
+
+**取舍**：用「多一次 MCP 调用 + 需要网络」换掉「读到旧记忆」这个真实发生过的故障。
+
+---
+
+## 九、已知限制
+
+| 限制 | 影响 | 缓解 |
+|---|---|---|
+| 需要网络 | 离线时读不到记忆 | 核心铁律可在指针里再重申一两条 |
+| 需要 GitHub MCP | MCP 未挂载时读不到 | 指针里写清楚依赖 |
+| 多一次工具调用 | 每会话略多 token | 入口保持精简 |
+| 三处清单需手工同步 | 易漏（曾出现 README 漏列自己） | 目前无校验器（原 `verify.mjs` 已随本地副本一同废弃） |
+| 无 CI 自动校验 | 依赖人工 | 可加 GitHub Action |
