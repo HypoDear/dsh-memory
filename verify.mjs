@@ -79,6 +79,7 @@ if (manifest) {
   const slugs = ['docs', 'memories'].flatMap((g) => (manifest[g] ?? []).map((e) => e.slug))
   const dup = slugs.filter((s, i) => slugs.indexOf(s) !== i)
   if (dup.length) fail(`manifest 有重复 slug：${[...new Set(dup)].join(', ')}`)
+  // updated 字段是否是今天之前（提醒更新）
   if (typeof manifest.updated !== 'string') warn('manifest.json 缺 updated 字段')
 }
 
@@ -103,7 +104,7 @@ let linkCount = 0
 for (const src of mdFiles) {
   const text = read(src)
   for (const m of text.matchAll(/\[([^\]]+)\]\(([^)\s]+)\)/g)) {
-    const [, , href] = m
+    const [, label, href] = m
     if (/^https?:|^mailto:/.test(href)) continue
     linkCount++
 
@@ -112,9 +113,9 @@ for (const src of mdFiles) {
 
     // 路径存在性
     if (rawPath !== '' && !has(target)) {
-      // 指向「计划中」的文件允许，但必须显式标注
+      // 指向"计划中"的文件允许，但必须显式标注
       const isPlanned = /待写|计划/.test(text)
-      if (isPlanned) warn(`${src}: 链接指向尚未落库的文件（已标注“待写”）：${href}`)
+      if (isPlanned) warn(`${src}: 链接指向尚未落库的文件（已标注"待写"）：${href}`)
       else fail(`${src}: 断链 → ${href}`)
       continue
     }
@@ -125,9 +126,7 @@ for (const src of mdFiles) {
       if (!targetFile.endsWith('.md')) continue
       const ids = headingsOf(targetFile)
       if (!ids.includes(anchor)) {
-        const near = ids.filter(
-          (id) => id.includes(anchor.replace(/^[一二三四五六七八九十]、?/, '')) || anchor.includes(id),
-        )
+        const near = ids.filter((id) => id.includes(anchor.replace(/^[一二三四五六七八九十]、?/, '')) || anchor.includes(id))
         fail(
           `${src}: 锚点不存在 → ${href}` +
             (near.length ? `（你是想指 ${near.map((n) => '#' + n).join(' 或 ')}？）` : ''),
@@ -167,19 +166,13 @@ if (has('index.html')) {
   if (!html.includes('rel="icon"')) warn('index.html 缺 favicon')
 }
 
-// ── 6. 同步与备份基础设施 ────────────────────────────────────────────────────
+// ── 6. 同步状态（本地 vs sync.mjs 记录的远程）────────────────────────────────
 
 if (!has('sync.mjs')) warn('缺少 sync.mjs —— 本机无 git 时无法拉取远程更新')
-if (has('sync.mjs') && !read('sync.mjs').includes('BACKUP_DIR')) {
-  warn('sync.mjs 未见备份逻辑 —— 覆盖本地前应备份')
-}
-if (!has('.gitignore')) warn('缺 .gitignore —— .backup/ 可能被误提交')
 
 // ── 报告 ────────────────────────────────────────────────────────────────────
 
-console.log(
-  `校验范围：${mdFiles.length} 个 markdown · ${linkCount} 个站内链接 · ${manifestFiles.length} 个 manifest 条目\n`,
-)
+console.log(`校验范围：${mdFiles.length} 个 markdown · ${linkCount} 个站内链接 · ${manifestFiles.length} 个 manifest 条目\n`)
 
 if (warnings.length) {
   console.log(`⚠️  警告 ${warnings.length} 条：`)
