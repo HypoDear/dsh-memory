@@ -232,7 +232,29 @@ body{
         行内代码 / 粗体 / 斜体 / 删除线 / 链接 / 图片
    ─────────────────────────────────────────────────────────────────── */
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const slug = s => s.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g,'-').replace(/^-|-$/g,'');
+
+/**
+ * 生成标题锚点 id。
+ *
+ * ⚠️ 必须与 GitHub 的 github-slugger 一致，否则同一份 markdown 在「本阅读器」
+ *    和「GitHub 网页」上的锚点不同，站内链接总有一边是死的。
+ *
+ * 规则（实测对齐）：
+ *   1. 转小写
+ *   2. 删除所有标点与符号（Unicode 的 P 与 S 类），**但保留连字符与下划线**
+ *   3. 空白序列替换为单个 `-`
+ *
+ * 实测对照：
+ *   `三、记忆文件格式`      → `三记忆文件格式`（顿号 U+3001 属 P 类，被删）
+ *   `DeepSeek-V4.1-Flash` → `deepseek-v41-flash`（保留 -，删除 .）
+ *
+ * 早期版本用「非字母数字替换为 -」，得到 `三-记忆文件格式`，与 GitHub 不一致 → 死锚。
+ */
+const slug = s => s
+  .toLowerCase()
+  .trim()
+  .replace(/[\p{P}\p{S}]/gu, (m) => (m === '-' || m === '_' ? m : ''))
+  .replace(/\s+/g, '-');
 
 function inline(s){
   const codes = [];
