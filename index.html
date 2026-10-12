@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH 长期记忆</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1f2328; --muted: #59636e; --border: #d1d9e0;
+    --sidebar: #f6f8fa; --accent: #0969da; --code-bg: #f6f8fa;
+    --quote-bar: #d1d9e0; --hover: #eef1f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9198a1; --border: #3d444d;
+      --sidebar: #010409; --accent: #4493f8; --code-bg: #151b23;
+      --quote-bar: #3d444d; --hover: #161b22;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    display: flex; min-height: 100vh;
+  }
+  #nav {
+    width: 280px; flex: 0 0 280px; background: var(--sidebar);
+    border-right: 1px solid var(--border); padding: 20px 0;
+    height: 100vh; overflow-y: auto; position: sticky; top: 0;
+  }
+  #nav h1 { font-size: 15px; margin: 0 20px 4px; letter-spacing: .3px; }
+  #nav .sub { font-size: 12px; color: var(--muted); margin: 0 20px 18px; }
+  #nav .group { font-size: 11px; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); margin: 18px 20px 6px; font-weight: 600; }
+  #nav a {
+    display: block; padding: 6px 20px; color: var(--fg); text-decoration: none;
+    font-size: 14px; border-left: 2px solid transparent;
+  }
+  #nav a:hover { background: var(--hover); }
+  #nav a.active { border-left-color: var(--accent); color: var(--accent); font-weight: 500; }
+  #nav a .s { display: block; font-size: 11px; color: var(--muted); font-weight: 400;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #nav .foot { margin: 22px 20px 0; font-size: 11px; color: var(--muted);
+    border-top: 1px solid var(--border); padding-top: 12px; }
+  main { flex: 1; min-width: 0; }
+  article { max-width: 860px; margin: 0 auto; padding: 40px 32px 96px; }
+  article h1 { font-size: 28px; border-bottom: 1px solid var(--border); padding-bottom: .3em; margin-top: 0; }
+  article h2 { font-size: 21px; border-bottom: 1px solid var(--border); padding-bottom: .3em; margin-top: 1.8em; }
+  article h3 { font-size: 17px; margin-top: 1.5em; }
+  article h4 { font-size: 15px; margin-top: 1.4em; }
+  article p, article li { overflow-wrap: break-word; }
+  article a { color: var(--accent); }
+  article code {
+    background: var(--code-bg); padding: .2em .4em; border-radius: 5px;
+    font: 85%/1.5 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  article pre {
+    background: var(--code-bg); padding: 14px 16px; border-radius: 8px;
+    overflow-x: auto; border: 1px solid var(--border);
+  }
+  article pre code { background: none; padding: 0; font-size: 13px; }
+  article blockquote {
+    margin: 0; padding: 0 1em; color: var(--muted);
+    border-left: 4px solid var(--quote-bar);
+  }
+  article table { border-collapse: collapse; width: 100%; margin: 1em 0; display: block; overflow-x: auto; }
+  article th, article td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; }
+  article th { background: var(--sidebar); font-weight: 600; }
+  article hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+  article img { max-width: 100%; }
+  article ul, article ol { padding-left: 1.6em; }
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  #err { color: #d1242f; padding: 40px 32px; }
+  #burger { display: none; }
+  @media (max-width: 820px) {
+    body { display: block; }
+    #nav { position: fixed; z-index: 10; height: 100vh; transform: translateX(-100%);
+      transition: transform .2s; width: 280px; }
+    #nav.open { transform: none; box-shadow: 0 0 24px rgba(0,0,0,.3); }
+    #burger { display: block; position: fixed; top: 12px; left: 12px; z-index: 11;
+      background: var(--sidebar); color: var(--fg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 11px; font-size: 16px; cursor: pointer; }
+    article { padding: 56px 20px 72px; }
+  }
+</style>
+</head>
+<body>
+<button id="burger" aria-label="菜单">☰</button>
+<nav id="nav">
+  <h1>DSH 长期记忆</h1>
+  <div class="sub">开发经验 · 环境事实 · 踩过的坑</div>
+  <div id="links"></div>
+  <div class="foot">
+    只读浏览 · <a href="https://github.com/HypoDear/dsh-memory" style="color:var(--accent)">GitHub</a>
+  </div>
+</nav>
+<main><article id="doc"><p class="meta">载入中…</p></article></main>
+
+<script>
+/* 极简 Markdown 渲染器（无外部依赖，避免 CDN 不可达）*/
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function inline(s) {
+  const codes = [];
+  s = s.replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
+  s = esc(s);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1">');
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, h) => {
+    const internal = /^(?!https?:|mailto:|#|\/)/.test(h) && /\.md(#|$)/.test(h);
+    if (internal) {
+      const [p, frag] = h.split('#');
+      const slug = p.replace(/^\.\//, '').replace(/^.*\//, '').replace(/\.md$/, '');
+      return `<a href="#/${slug}${frag ? '#' + frag : ''}">${t}</a>`;
+    }
+    return `<a href="${h}"${/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : ''}>${t}</a>`;
+  });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+  s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${esc(codes[+i])}</code>`);
+  return s;
+}
+
+function render(md) {
+  const lines = md.replace(/\r\n?/g, '\n').split('\n');
+  let out = '', i = 0, list = null;
+  const closeList = () => { if (list) { out += `</${list}>\n`; list = null; } };
+
+  while (i < lines.length) {
+    const ln = lines[i];
+
+    const fence = ln.match(/^\s*```(\w*)\s*$/);
+    if (fence) {
+      closeList();
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^\s*```\s*$/.test(lines[i])) buf.push(lines[i++]);
+      i++;
+      out += `<pre><code>${esc(buf.join('\n'))}</code></pre>\n`;
+      continue;
+    }
+
+    if (/^\s*\|/.test(ln) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      closeList();
+      const cells = r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+      const head = cells(ln);
+      i += 2;
+      let body = '';
+      while (i < lines.length && /^\s*\|/.test(lines[i])) {
+        body += '<tr>' + cells(lines[i]).map(c => `<td>${inline(c)}</td>`).join('') + '</tr>\n';
+        i++;
+      }
+      out += `<table><thead><tr>${head.map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>\n`;
+      continue;
+    }
+
+    const h = ln.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      closeList();
+      const lv = h[1].length;
+      const id = h[2].toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '');
+      out += `<h${lv} id="${id}">${inline(h[2])}</h${lv}>\n`;
+      i++; continue;
+    }
+
+    if (/^\s*([-*_])\s*\1\s*\1[\s\1]*$/.test(ln)) { closeList(); out += '<hr>\n'; i++; continue; }
+
+    if (/^\s*>/.test(ln)) {
+      closeList();
+      const buf = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/, ''));
+      out += `<blockquote>${render(buf.join('\n'))}</blockquote>\n`;
+      continue;
+    }
+
+    const li = ln.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
+    if (li) {
+      const want = /^\d/.test(li[2]) ? 'ol' : 'ul';
+      if (list !== want) { closeList(); out += `<${want}>\n`; list = want; }
+      let text = li[3];
+      i++;
+      while (i < lines.length) {
+        const nx = lines[i];
+        if (/^\s*$/.test(nx) || /^(\s*)([-*+]|\d+\.)\s+/.test(nx) || /^#{1,6}\s/.test(nx) ||
+            /^\s*>/.test(nx) || /^\s*```/.test(nx) || /^\s*\|/.test(nx)) break;
+        text += ' ' + nx.trim(); i++;
+      }
+      out += `<li>${inline(text)}</li>\n`;
+      continue;
+    }
+
+    if (/^\s*$/.test(ln)) { closeList(); i++; continue; }
+
+    closeList();
+    const buf = [ln];
+    i++;
+    while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|\s*[-*+]\s|\s*\d+\.\s|\s*>|\s*```|\s*\|)/.test(lines[i])) {
+      buf.push(lines[i++]);
+    }
+    out += `<p>${inline(buf.join('\n'))}</p>\n`;
+  }
+  closeList();
+  return out;
+}
+
+/* 加载与路由 */
+const docEl = document.getElementById('doc');
+const linksEl = document.getElementById('links');
+const navEl = document.getElementById('nav');
+let MANIFEST = { docs: [], memories: [] };
+
+function allDocs() {
+  return [...(MANIFEST.docs || []), ...(MANIFEST.memories || [])];
+}
+
+function buildNav(activeSlug) {
+  let html = '<div class="group">说明</div>';
+  for (const d of MANIFEST.docs || []) {
+    html += `<a href="#/${d.slug}" class="${d.slug === activeSlug ? 'active' : ''}">${esc(d.title)}<span class="s">${esc(d.summary || '')}</span></a>`;
+  }
+  html += '<div class="group">记忆</div>';
+  if (!(MANIFEST.memories || []).length) {
+    html += '<a style="color:var(--muted);cursor:default">（还没有记忆）</a>';
+  } else {
+    for (const m of MANIFEST.memories) {
+      html += `<a href="#/${m.slug}" class="${m.slug === activeSlug ? 'active' : ''}">${esc(m.title)}<span class="s">${esc(m.summary || '')}</span></a>`;
+    }
+  }
+  linksEl.innerHTML = html;
+}
+
+async function load(slug) {
+  const entry = allDocs().find(d => d.slug === slug) || allDocs()[0];
+  if (!entry) { docEl.innerHTML = '<p class="meta">manifest.json 里没有文档。</p>'; return; }
+  buildNav(entry.slug);
+  docEl.innerHTML = '<p class="meta">载入中…</p>';
+  try {
+    const res = await fetch(entry.file + '?t=' + Date.now(), { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const md = await res.text();
+    docEl.innerHTML = render(md);
+    document.title = entry.title + ' · DSH 记忆';
+    const frag = location.hash.split('#')[2];
+    if (frag) { const t = document.getElementById(frag); if (t) t.scrollIntoView(); }
+    else window.scrollTo(0, 0);
+  } catch (e) {
+    docEl.innerHTML = `<div id="err">载入 <code>${esc(entry.file)}</code> 失败：${esc(e.message)}<br><br>
+      如果你是在本地直接双击打开这个 HTML，浏览器会因安全策略拒绝读取同目录文件。<br>
+      请改用 <code>python -m http.server</code> 起一个本地服务，或直接看 GitHub Pages。</div>`;
+  }
+}
+
+function route() {
+  const slug = (location.hash.replace(/^#\/?/, '').split('#')[0]) || 'readme';
+  load(slug);
+}
+
+document.getElementById('burger').onclick = () => navEl.classList.toggle('open');
+window.addEventListener('hashchange', () => { route(); navEl.classList.remove('open'); });
+
+(async () => {
+  try {
+    const res = await fetch('manifest.json?t=' + Date.now(), { cache: 'no-cache' });
+    MANIFEST = await res.json();
+  } catch {
+    MANIFEST = { docs: [{ slug: 'readme', file: 'README.md', title: '首页', summary: '' }], memories: [] };
+  }
+  route();
+})();
+</script>
+</body>
+</html>
