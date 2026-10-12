@@ -6,20 +6,45 @@
       "slug": "readme",
       "file": "README.md",
       "title": "首页",
-      "summary": "这是什么、怎么用"
+      "summary": "这是什么、怎么用",
+      "tags": ["说明"]
     },
     {
       "slug": "agents",
       "file": "AGENTS.md",
       "title": "AGENTS.md（记忆入口）",
-      "summary": "铁律与索引 —— 每次会话都会被注入"
+      "summary": "铁律与索引 —— 每次会话都会被注入",
+      "tags": ["入口"]
     },
     {
       "slug": "spec",
       "file": "SPEC.md",
       "title": "SPEC（记忆规范）",
-      "summary": "格式、命名、写入流程、本机接入"
+      "summary": "格式、命名、写入流程、本机接入",
+      "tags": ["规范"]
     }
   ],
-  "memories": []
+  "memories": [
+    {
+      "slug": "workbuddy-integration",
+      "file": "memory/workbuddy-integration.md",
+      "title": "WorkBuddy 接入（脱离桌面端）",
+      "summary": "凭据、端点、签到与令牌寿命",
+      "tags": ["workbuddy", "credential", "oauth"]
+    },
+    {
+      "slug": "windows-scripting",
+      "file": "memory/windows-scripting.md",
+      "title": "Windows 上的脚本坑",
+      "summary": "cmd 编码、URL 截断、软链接验证、引号陷阱",
+      "tags": ["windows", "scripting"]
+    },
+    {
+      "slug": "readme-memory",
+      "file": "memory/README.md",
+      "title": "memory/ 目录说明",
+      "summary": "现有记忆与待写清单",
+      "tags": ["目录"]
+    }
+  ]
 }
