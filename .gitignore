@@ -1,0 +1,8 @@
+# sync.mjs 覆盖前的本地备份 —— 属于本地产物，不进仓库
+.backup/
+
+# 编辑器 / 系统杂项
+.DS_Store
+Thumbs.db
+*.swp
+*~
