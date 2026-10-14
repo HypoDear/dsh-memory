@@ -41,11 +41,10 @@ dsh-memory/                     ← GitHub 上的仓库（唯一真相源）
 ├── SPEC.md            # 本文件：规范
 ├── manifest.json      # 网页阅读器的目录清单
 ├── index.html         # 单文件阅读器（GitHub Pages）
-├── memory/            # 记忆正文（第二层）
-│   ├── README.md      # 目录说明 + 待写清单
-│   ├── _template.md   # 格式模板
-│   └── <slug>.md
-└── .github/workflows/pages.yml   # Pages 部署
+└── memory/            # 记忆正文（第二层）
+    ├── README.md      # 目录说明 + 待写清单
+    ├── _template.md   # 格式模板
+    └── <slug>.md
 ```
 
 > 早期的 `sync.mjs` / `push.mjs` / `verify.mjs` **已删除**（见第八节）。
@@ -257,4 +256,4 @@ https://raw.githubusercontent.com/HypoDear/dsh-memory/main/AGENTS.md
 | 读取工具易踩坑 | 用错工具会**静默**读不到正文 | 第五节写明必须用 `read_mcp_resource` |
 | 多一次工具调用 | 每会话略多 token | 入口保持精简 |
 | 三处清单需手工同步 | 易漏（曾出现 README 漏列自己） | 目前无校验器（原 `verify.mjs` 已随本地副本一同废弃） |
-| 无 CI 自动校验 | 依赖人工 | 可加 GitHub Action |
+| 无 CI 自动校验 | 依赖人工 | 有意为之：本仓库不使用 Actions，Pages 也在仓库设置里手动开启 |
