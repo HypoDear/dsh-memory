@@ -1,92 +1,52 @@
 # AGENTS.md — 记忆入口
 
-> 这是 AI agent 的长期记忆入口。**保持精简** —— 本文件每次会话都会被注入上下文，
-> 每一行都在消耗 token。细节请下沉到 `memory/`，这里只留「必读的铁律」和索引。
+> 本文件每次会话都会被注入。**只留铁律和索引**，细节在 `memory/`。
 
----
-
-## 一、如何使用这份记忆
-
-**读取**：先读本文件。需要细节时，按下面的索引去读 `memory/` 里对应的文件。
-
-⚠️ **读取必须用 `read_mcp_resource`，不能用 `get_file_contents`**：
+## 一、怎么读
 
 ```
 read_mcp_resource(server="github",
                   uri="repo://HypoDear/dsh-memory/contents/AGENTS.md")
 ```
 
-原因：`mcp__github__get_file_contents` 把文件作为「嵌入式资源块」返回，
-而 DSH 不把该块投影给模型 —— 模型只会看到一句
-`[embedded resource unsupported; raw resource data remains available to programmatic callers]`，
-**正文完全读不到**。`repo://` 资源模板返回的是普通文本，正常可见。
-详见 [`SPEC.md`](./SPEC.md#五读取路径)。
+⚠️ **不要用 `get_file_contents`** —— 它返回「嵌入式资源块」，DSH 不投影给模型，
+正文一个字都读不到（调用却显示成功）。MCP 未挂载时的备用：`web_fetch` 取
+`https://raw.githubusercontent.com/HypoDear/dsh-memory/main/AGENTS.md`。
 
-**写入**：
+## 二、怎么写
 
-1. **任何写入前必须先向用户提出，并得到确认** —— 不允许静默写入
-2. 按 [`SPEC.md`](./SPEC.md#三记忆文件格式) 的格式写入 `memory/`
-3. 如果新增内容值得每个会话都看到，才更新本文件的索引
-4. **写入即发布** —— 远端是唯一真相源，本机没有副本，**没有任何同步步骤**
+**任何写入前先向用户确认**；格式照 [`memory/_template.md`](./memory/_template.md)；
+改完同步 **2 处**：本文件索引、[`manifest.json`](./manifest.json)。
+**写入即发布** —— 远端是唯一真相源，本机没有副本，没有同步步骤。
 
----
-
-## 二、铁律（每次会话都适用）
-
-<!-- 这些是反复踩过的坑，属于「无论做什么都别忘」的级别 -->
+## 三、铁律
 
 ### 环境
-
-- **本机没有 `git`** —— 不能用 `git` 命令行。需要操作 GitHub 时使用 GitHub MCP 工具。
-- **`pwsh` 工具可用**（PowerShell 7.6.6，`C:\Program Files\PowerShell\7\pwsh.exe`）。
-  若再次出现退出码 `3221225794`（`0xC0000142` = `STATUS_DLL_INIT_FAILED`），
-  优先检查该路径是否仍是 PATH 中的第一项。
-- **改完环境变量必须重启 DSH** —— 运行中的进程读不到用户级环境变量的改动。
+- **本机没有 `git`** —— 需要操作 GitHub 就用 GitHub MCP 工具。
+- **改完用户级环境变量必须重启 DSH**，运行中的进程读不到改动。
+- `pwsh` 可用；退出码 `3221225794` = `STATUS_DLL_INIT_FAILED`，先查 PATH 第一项。
 
 ### DSH 配置
-
-- **bundle patch 新增条目必须包在 `- insert:` 里**。裸的顶层 `- id: <新id>` 是
-  「按 id 覆盖已有条目」，匹配不到就**静默丢弃**（只留一条 stderr 警告）。
-  这是「MCP 服务器配好了却完全不出现且不报错」的根因。
-- **profile patch 是整块替换，不是深合并** —— 覆盖某个条目时要重述所有想保留的字段。
-- **`.cmd` 文件必须是纯 ASCII** —— `cmd.exe` 按 OEM 代码页（中文 Windows 为 GBK）
-  读取 `.cmd`，UTF-8 的中文会变成乱码并破坏语法。逻辑写进 `.mjs`，`.cmd` 只做壳。
+- **bundle patch 新增条目必须包在 `- insert:` 里**，裸顶层 `- id:` 匹配不到会**静默丢弃**。
+- **profile patch 是整块替换，不是深合并** —— 覆盖某条目要重述所有想保留的字段。
+- **`.cmd` 必须纯 ASCII**（cmd.exe 按 GBK 读），逻辑写进 `.mjs`。
 
 ### 删除类操作
+- **优先送回收站**，不要直接删。
+- 删会话要同时清 **3 处**：会话目录、`session_projcache`、`workspace.json` 的 `sessionIds`。
+- **删文件前确认没有 `link:` 软链接依赖它** —— 源被删后表面正常，直到下次重启才暴露。
 
-- **优先送回收站**，不要直接删除（除非用户明确要求永久删除）。
-- 删会话需要同时清理 **3 处**：会话目录、`session_projcache` 缓存、
-  `workspace.json` 的 `sessionIds` 数组。漏掉任何一处都会留下问题。
-- **删文件前先确认没有别的东西依赖它** —— 软链接的源被删掉后，
-  表面一切正常，直到下次重启才暴露（如 `link:` 安装的 bundle）。
+### 本仓库
+- ⚠️ **公开仓库**：绝不写入密钥、令牌、密码、个人隐私（姓名/电话/邮箱/账号 id）。
+- 只记**关键节点和指导方向**，不记探索过程。
 
-### 记忆库自身
+## 四、索引
 
-- ⚠️ **本仓库是公开的** —— 写入前默认全世界都能看到。
-  **绝不写入密钥、令牌、密码、个人隐私（姓名/电话/邮箱/账号 id）。**
-- **远端是唯一真相源**：写入即发布，本机无副本，**不需要任何同步脚本**。
-- 改记忆文件名或摘要时要同步 **3 处**：本文件索引、`memory/README.md`、`manifest.json`。
-
----
-
-## 三、记忆索引
-
-<!-- 每新增一个 memory 文件，在这里加一行。格式：文件 | 一句话说明 -->
-
-| 文件 | 内容 |
+| 文件 | 一句话 |
 |---|---|
-| [`memory/workbuddy-integration.md`](./memory/workbuddy-integration.md) | WorkBuddy 接入：凭据、端点、签到、令牌寿命 |
-| [`memory/windows-scripting.md`](./memory/windows-scripting.md) | Windows 脚本坑：cmd 编码、URL 截断、软链接验证、引号陷阱 |
-| [`SPEC.md`](./SPEC.md) | 记忆规范：格式、命名、流程、读取、已知限制 |
-| [`memory/README.md`](./memory/README.md) | 记忆目录说明与待写清单 |
+| [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | 接 MCP 用官方 `dsh-mcp-client` 行；新增行必须 `- insert:` |
+| [`memory/workbuddy.md`](./memory/workbuddy.md) | WorkBuddy 接入：凭据顺序、端点、模型可见性、签到 |
+| [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
+| [`SPEC.md`](./SPEC.md) | 记忆格式与流程 |
 
----
-
-## 四、本机接入
-
-本机 `~/.dsh/AGENTS.md` 是一份**极小的稳定指针**（约 40 行），只写「去哪读」，
-由 DSH 每次会话自动注入上下文；它**不保存记忆正文**。
-
-各设备的指针内容完全一致，可直接复制。指针几乎不变，因此**不会过时** ——
-这正是放弃「本地副本 + 同步」的原因
-（见 [`SPEC.md`](./SPEC.md#八设计演变为什么放弃了本地副本)）。
+`~/.dsh/AGENTS.md` 是各设备一致的**极小指针**，只写「去哪读」，几乎不变。

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-12",
+  "updated": "2026-10-14",
   "docs": [
     {
       "slug": "readme",
@@ -20,31 +20,31 @@
       "slug": "spec",
       "file": "SPEC.md",
       "title": "SPEC（记忆规范）",
-      "summary": "格式、命名、流程、读取、已知限制",
+      "summary": "结构、格式、写入与读取流程",
       "tags": ["规范"]
     }
   ],
   "memories": [
     {
-      "slug": "workbuddy-integration",
-      "file": "memory/workbuddy-integration.md",
-      "title": "WorkBuddy 接入（脱离桌面端）",
-      "summary": "凭据、端点、签到、令牌寿命",
-      "tags": ["workbuddy", "credential", "oauth"]
+      "slug": "dsh-mcp",
+      "file": "memory/dsh-mcp.md",
+      "title": "DSH 接 MCP",
+      "summary": "官方 mcp-client 行；新增行必须 - insert:",
+      "tags": ["dsh", "mcp"]
     },
     {
-      "slug": "windows-scripting",
-      "file": "memory/windows-scripting.md",
-      "title": "Windows 上的脚本坑",
-      "summary": "cmd 编码、URL 截断、软链接验证、引号陷阱",
+      "slug": "workbuddy",
+      "file": "memory/workbuddy.md",
+      "title": "WorkBuddy 接入",
+      "summary": "凭据顺序、端点、模型可见性、签到",
+      "tags": ["workbuddy", "credential"]
+    },
+    {
+      "slug": "windows",
+      "file": "memory/windows.md",
+      "title": "Windows 脚本坑",
+      "summary": "cmd 编码、URL 的 &、软链接验证、引号",
       "tags": ["windows", "scripting"]
-    },
-    {
-      "slug": "readme-memory",
-      "file": "memory/README.md",
-      "title": "memory/ 目录说明",
-      "summary": "现有记忆与待写清单",
-      "tags": ["目录"]
     }
   ]
 }
