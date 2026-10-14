@@ -40,6 +40,43 @@ AI agent 默认**没有跨会话记忆** —— 每次新会话都是空白。�
 **作为 AI 记忆**：在本机 `~/.dsh/AGENTS.md` 放一份指针，DSH 每次会话会自动注入它。
 指针内容与读取方式见 [SPEC.md](./SPEC.md#五读取路径)。
 
+**本机指针全文（备份）** —— 新设备接入时，把下面这段原样复制到 `~/.dsh/AGENTS.md` 即可。
+指针几乎不变；若日后有改动，请回来同步更新这一段：
+
+````markdown
+# 长期记忆（指针）
+
+本机**不再保存记忆正文**。长期记忆只有一份，在 GitHub：
+
+    https://github.com/HypoDear/dsh-memory
+
+**每次会话开始时，用 `read_mcp_resource` 读取它：**
+
+```
+read_mcp_resource(
+  server="github",
+  uri="repo://HypoDear/dsh-memory/contents/AGENTS.md")
+```
+
+然后按该文件里的索引继续读 `memory/*.md`，把路径接到 `contents/` 后面。
+
+⚠️ **不要用 `get_file_contents`** —— 它返回的是「嵌入式资源块」，
+DSH 不把该块投影给模型，你只会看到一句
+`[embedded resource unsupported; raw resource data remains available to programmatic callers]`，
+**正文一个字都读不到**（调用却显示成功）。详见仓库 `SPEC.md` 第五节。
+
+备用：MCP 未挂载时用 `web_fetch` 取
+`https://raw.githubusercontent.com/HypoDear/dsh-memory/main/AGENTS.md`
+
+## 两条永久规则（不随记忆库变动）
+
+1. **写入记忆前必须先向用户确认**，不允许静默写入。
+2. **该仓库是公开的** —— 绝不写入密钥、令牌、密码、个人隐私。
+
+---
+*本文件是稳定指针，几乎不需要修改；记忆内容全部在仓库里。*
+````
+
 **改了记忆之后**：**没有后续步骤** —— 用 GitHub MCP 写入即发布。
 本机没有 git、没有副本、没有同步脚本。
 
