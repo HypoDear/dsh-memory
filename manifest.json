@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "docs": [
     {
       "slug": "readme",
@@ -33,11 +33,18 @@
       "tags": ["dsh", "mcp"]
     },
     {
-      "slug": "workbuddy",
-      "file": "memory/workbuddy.md",
-      "title": "WorkBuddy 接入",
-      "summary": "凭据顺序、端点、模型可见性、签到",
-      "tags": ["workbuddy", "credential"]
+      "slug": "dsh-workbuddy-connect",
+      "file": "memory/dsh-workbuddy-connect.md",
+      "title": "WorkBuddy 接入（自有分支）",
+      "summary": "凭据顺序、端点、固定推理档位 high、可见性、签到",
+      "tags": ["workbuddy", "dsh", "credential", "plugin"]
+    },
+    {
+      "slug": "dsh-remote",
+      "file": "memory/dsh-remote.md",
+      "title": "手机遥控桌面 DSH",
+      "summary": "link 安装、wire.js 自上游 ZCode 重建、配对状态敏感",
+      "tags": ["dsh", "remote", "plugin"]
     },
     {
       "slug": "windows",
