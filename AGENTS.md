@@ -45,7 +45,8 @@ read_mcp_resource(server="github",
 | 文件 | 一句话 |
 |---|---|
 | [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | 接 MCP 用官方 `dsh-mcp-client` 行；新增行必须 `- insert:` |
-| [`memory/workbuddy.md`](./memory/workbuddy.md) | WorkBuddy 接入：凭据顺序、端点、模型可见性、签到 |
+| [`memory/dsh-workbuddy-connect.md`](./memory/dsh-workbuddy-connect.md) | WorkBuddy 接 DSH：凭据顺序、端点、固定档位、可见性、签到 |
+| [`memory/dsh-remote.md`](./memory/dsh-remote.md) | 手机遥控桌面 DSH：link 安装、`wire.js` 重建、配对状态 |
 | [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
 | [`SPEC.md`](./SPEC.md) | 记忆格式与流程 |
 
