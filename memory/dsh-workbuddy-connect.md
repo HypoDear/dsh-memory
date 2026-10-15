@@ -28,6 +28,24 @@ pnpm install --prod      # ⚠️ 必须
 `@deepseek-ai/*`（peerDependency）的一份副本放进插件目录，运行时**优先于宿主同名包**被解析，
 等于同进程两份 `cordis` / `pi-ai`。剪成生产依赖后只剩插件该自带的 `@earendil-works/pi-ai`。
 
+⚠️ **但命令行必须自带宿主工具包** —— 两者是不同的解析路径：
+
+| 产物 | 谁加载 | @deepseek-ai/* 怎么办 |
+|---|---|---|
+| `lib/index.js` | DSH 宿主内嵌加载 | **必须留在外部**，由宿主提供 |
+| `lib/bin.js` | 独立 node 进程 | **必须内联**（`tsdown.config.ts` 的 `alwaysBundle`），否则启动即 `ERR_MODULE_NOT_FOUND` |
+
+所以 `index` 与 `bin` **刻意分成两份配置、不共享 chunk**：tsdown 默认把
+`peerDependencies` 外部化，必须显式 `alwaysBundle` 才会内联。内联安全是因为
+`dsh-home-paths` / `dsh-atomic-write` 都不持有进程级单例（后者只是文件系统锁约定）。
+**改构建配置时别把两者合回多入口单次构建**，否则内联副本会被拖进宿主那份 = 自造双实例。
+
+跑 CLI 的正确姿势（profile 作用域，否则解析不到）：
+
+```powershell
+dsh plugin --profile desktop exec dsh-workbuddy-connect status --json
+```
+
 ### 凭据
 
 查找顺序：**环境变量 → 桌面端加密文件 → 插件自留副本**。
@@ -105,12 +123,21 @@ dsh-workbuddy-connect <checkin|doctor|login|logout|status> [--provider <id>] [--
 
 `login` 另接受 `--no-open`；`checkin` 另接受 `--claim`。
 
+### 遗留数据文件
+
+`$DSH_HOME/.workbuddy-probe.json` / `.workbuddy-ai-probe.json` 是**已移除的档位探测**留下的
+记录文件，现在没有任何代码读它们。确认无用后再删（删前留意 0.7.x 旧版可能仍会读）。
+
 ## 验证方式
 
-- 凭据与额度：状态路由 `/plugins/dsh-workbuddy-connect/status`（及 `/ai/status`）
-- 模型可见性：同一路由的 `visibility.disabled` 回显生效中的隐藏列表
-- 签到：`dsh-workbuddy-connect checkin`，两平台都应 `code 0`
+- CLI（最省事，一次验完凭据 + 端点 + 签到 + 进程存活）：
+  `dsh plugin --profile desktop exec dsh-workbuddy-connect doctor --json`
+  —— `hints` 应为空数组，`signIn` 为 `signed-in`，`hostHeartbeat.processAlive` 为 true
+- 额度与可见性：状态路由 `/plugins/dsh-workbuddy-connect/status`（及 `/ai/status`）
+- 签到：`checkin`，国内版 `checkedToday` 真、国际版假
 - 升级提醒已移除：`/plugins/dsh-workbuddy-connect/update` 应返回 **404**（旧版 200）
+- 心跳版本：`$DSH_HOME/.workbuddy-host-heartbeat.json` 的 `pluginVersion`
+  —— **只在启动时写一次**，所以它不更新就说明没真正重启
 
 ## 相关
 
