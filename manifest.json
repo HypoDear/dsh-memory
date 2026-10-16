@@ -29,8 +29,15 @@
       "slug": "dsh-mcp",
       "file": "memory/dsh-mcp.md",
       "title": "DSH 接 MCP",
-      "summary": "官方 mcp-client 行；新增行必须 - insert:",
-      "tags": ["dsh", "mcp"]
+      "summary": "五种装载形式；home/profile 层 patch 热生效，bundle 层与源码要重启",
+      "tags": ["dsh", "mcp", "hmr"]
+    },
+    {
+      "slug": "dsh-restart",
+      "file": "memory/dsh-restart.md",
+      "title": "DSH 重启限制",
+      "summary": "会话内重启必失败：辅助进程与 DSH 同生共死",
+      "tags": ["dsh", "restart", "windows"]
     },
     {
       "slug": "dsh-workbuddy-connect",

@@ -30,6 +30,9 @@ read_mcp_resource(server="github",
 - **bundle patch 新增条目必须包在 `- insert:` 里**，裸顶层 `- id:` 匹配不到会**静默丢弃**。
 - **profile patch 是整块替换，不是深合并** —— 覆盖某条目要重述所有想保留的字段。
 - **`.cmd` 必须纯 ASCII**（cmd.exe 按 GBK 读），逻辑写进 `.mjs`。
+- **改配置要不要重启，看写在哪一层**：home/profile 层 patch 被 `dsh-hmr` 监视、**热生效**；
+  bundle 自带 patch 与插件 JS 源码**不被监视、必须重启**。详见
+  [`memory/dsh-mcp.md`](./memory/dsh-mcp.md)。
 
 ### 删除类操作
 - **优先送回收站**，不要直接删。
@@ -44,7 +47,8 @@ read_mcp_resource(server="github",
 
 | 文件 | 一句话 |
 |---|---|
-| [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | 接 MCP 用官方 `dsh-mcp-client` 行；新增行必须 `- insert:` |
+| [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | MCP 装载五种形式；哪层改动热生效、哪层要重启 |
+| [`memory/dsh-restart.md`](./memory/dsh-restart.md) | 会话内重启 DSH 必失败：aux 进程与 DSH 同生共死 |
 | [`memory/dsh-workbuddy-connect.md`](./memory/dsh-workbuddy-connect.md) | WorkBuddy 接 DSH：凭据顺序、端点、固定档位、可见性、签到 |
 | [`memory/dsh-remote.md`](./memory/dsh-remote.md) | 手机遥控桌面 DSH：link 安装、`wire.js` 重建、配对状态 |
 | [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
