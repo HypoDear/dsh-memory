@@ -1,15 +1,15 @@
-# dsh-remote：手机遥控桌面 DSH（自研插件）
+# dsh-remote：手机遥控 DSH（自研插件）
 
 - **标签**：`dsh` `remote` `plugin`
-- **更新**：2026-10-15
+- **更新**：2026-10-16
 - **状态**：有效
 
 ## 结论
 
-- 自研 DSH 插件，仓库 `HypoDear/dsh-remote`（公开）。用手机浏览器遥控**桌面端 DSH 的真实工作区与会话**
+- 自研 DSH 插件，仓库 `HypoDear/dsh-remote`（公开）。用手机浏览器遥控**桌面上跑着的 DSH 的真实工作区与会话**
 - **不走局域网**：经公共中继 + 第三方遥控网页；手机端**无需装 App**，但电脑端 DSH 必须保持运行且联网
 - 链路只有逐跳传输加密，**不是端到端加密**；遥控网页与中继由第三方运营
-- 本机以 `link:` 装进 `desktop` profile（源码目录即运行代码，改完重启即生效）
+- 本机以 `link:` 装进 **`web`** profile（本机已不用桌面端，见 [`dsh-environment.md`](./dsh-environment.md)；源码目录即运行代码，改完重启即生效）
 - 入口在**侧边栏**：左下角、账号头像正上方的一行「远程控制」（带状态色圆点）
 
 ## 细节
@@ -19,11 +19,11 @@
 ```powershell
 # 只打包到 dist/
 powershell -ExecutionPolicy Bypass -File scripts/install.ps1 -PackOnly
-# 装进 desktop profile（先关闭 DSH）
+# 装进 web profile（先关闭 DSH）
 powershell -ExecutionPolicy Bypass -File scripts/install.ps1
 ```
 
-profile 登记（`$DSH_HOME/profiles/desktop/package.json`）：
+profile 登记（`$DSH_HOME/profiles/web/package.json`）：
 
 ```json
 "dependencies": { "dsh-remote": "link:<仓库绝对路径>" },
@@ -74,5 +74,6 @@ ZCODE_SOURCE=<路径> node build-vendor.mjs  # 用本地已有 checkout
 
 ## 相关
 
+- [`dsh-environment.md`](./dsh-environment.md) —— 本机只用 web 端
 - [`dsh-workbuddy-connect.md`](./dsh-workbuddy-connect.md) —— 同样 link 安装的插件
 - [`windows.md`](./windows.md) —— 脚本与安装里踩过的 Windows 坑
