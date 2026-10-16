@@ -54,6 +54,13 @@
       "tags": ["dsh", "restart", "windows"]
     },
     {
+      "slug": "dsh-autostart",
+      "file": "memory/dsh-autostart.md",
+      "title": "DSH Web 自启",
+      "summary": "计划任务登录触发；覆盖 PT72H 与电池默认值；Delay 与守卫正则两个陷阱",
+      "tags": ["dsh", "autostart", "windows", "taskscheduler"]
+    },
+    {
       "slug": "dsh-workbuddy-connect",
       "file": "memory/dsh-workbuddy-connect.md",
       "title": "WorkBuddy 接入（自有分支）",
