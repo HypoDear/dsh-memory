@@ -26,11 +26,25 @@
   ],
   "memories": [
     {
+      "slug": "dsh-environment",
+      "file": "memory/dsh-environment.md",
+      "title": "本机 DSH 环境",
+      "summary": "只用 web 端；插件目标一律 --profile web",
+      "tags": ["dsh", "environment"]
+    },
+    {
       "slug": "dsh-mcp",
       "file": "memory/dsh-mcp.md",
       "title": "DSH 接 MCP",
       "summary": "五种装载形式；home/profile 层 patch 热生效，bundle 层与源码要重启",
       "tags": ["dsh", "mcp", "hmr"]
+    },
+    {
+      "slug": "dsh-plugin-id-clash",
+      "file": "memory/dsh-plugin-id-clash.md",
+      "title": "DSH 行 id 撞车",
+      "summary": "home 层沿用 bundle 的行 id → 那个 bundle 永远卸不掉",
+      "tags": ["dsh", "mcp", "plugin", "hmr"]
     },
     {
       "slug": "dsh-restart",
@@ -49,7 +63,7 @@
     {
       "slug": "dsh-remote",
       "file": "memory/dsh-remote.md",
-      "title": "手机遥控桌面 DSH",
+      "title": "手机遥控 DSH",
       "summary": "link 安装、wire.js 自上游 ZCode 重建、配对状态敏感",
       "tags": ["dsh", "remote", "plugin"]
     },

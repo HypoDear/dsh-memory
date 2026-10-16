@@ -1,7 +1,7 @@
 # dsh-workbuddy-connect：WorkBuddy 模型接入 DSH（自有分支）
 
 - **标签**：`workbuddy` `dsh` `credential` `plugin`
-- **更新**：2026-10-15
+- **更新**：2026-10-16
 - **状态**：有效
 
 ## 结论
@@ -12,7 +12,8 @@
 - **仓库是自己的**：`HypoDear/dsh-workbuddy-connect`（公开），源码整理自上游同名 MIT 项目 0.7.5。
   再分发必须**保留上游版权与许可声明**（`LICENSE` 原样保留）
 - 本分支两处改造：**移除内置升级提醒**；**推理档位固定 `high` 并移除档位检测**
-- 本机以 `link:` 装进 `desktop` profile（源码目录即运行代码，改完重启即生效）
+- 本机以 `link:` 装进 **`web`** profile（本机已不用桌面端，见 [`dsh-environment.md`](./dsh-environment.md)；
+  源码目录即运行代码，改完重启即生效）
 - 安装步骤与命令细节见仓库 README，这里只记环境事实
 
 ## 细节
@@ -43,7 +44,7 @@ pnpm install --prod      # ⚠️ 必须
 跑 CLI 的正确姿势（profile 作用域，否则解析不到）：
 
 ```powershell
-dsh plugin --profile desktop exec dsh-workbuddy-connect status --json
+dsh plugin --profile web exec dsh-workbuddy-connect status --json
 ```
 
 ### 凭据
@@ -51,6 +52,7 @@ dsh plugin --profile desktop exec dsh-workbuddy-connect status --json
 查找顺序：**环境变量 → 桌面端加密文件 → 插件自留副本**。
 
 ⚠️ 桌面端加密文件**只要存在就优先**，解不开时直接报错、不回退 —— 想脱离桌面端必须删掉它。
+（本机已卸载桌面端，但该文件若残留仍会干扰，遇到 credential 报错先查它。）
 
 ```powershell
 WORKBUDDY_AUTH_FILE     = <目录>\workbuddy-cn.json
@@ -131,7 +133,7 @@ dsh-workbuddy-connect <checkin|doctor|login|logout|status> [--provider <id>] [--
 ## 验证方式
 
 - CLI（最省事，一次验完凭据 + 端点 + 签到 + 进程存活）：
-  `dsh plugin --profile desktop exec dsh-workbuddy-connect doctor --json`
+  `dsh plugin --profile web exec dsh-workbuddy-connect doctor --json`
   —— `hints` 应为空数组，`signIn` 为 `signed-in`，`hostHeartbeat.processAlive` 为 true
 - 额度与可见性：状态路由 `/plugins/dsh-workbuddy-connect/status`（及 `/ai/status`）
 - 签到：`checkin`，国内版 `checkedToday` 真、国际版假
@@ -141,5 +143,6 @@ dsh-workbuddy-connect <checkin|doctor|login|logout|status> [--provider <id>] [--
 
 ## 相关
 
+- [`dsh-environment.md`](./dsh-environment.md) —— 本机只用 web 端
 - [`dsh-remote.md`](./dsh-remote.md) —— 同样 link 安装的自研插件
 - [`windows.md`](./windows.md) —— 安装/脚本里踩过的 Windows 坑
