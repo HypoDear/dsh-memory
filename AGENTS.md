@@ -56,6 +56,7 @@ read_mcp_resource(server="github",
 | [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | MCP 装载五种形式；哪层改动热生效、哪层要重启 |
 | [`memory/dsh-plugin-id-clash.md`](./memory/dsh-plugin-id-clash.md) | 行 id 与 bundle 撞车 → 那个 bundle 永远卸不掉 |
 | [`memory/dsh-restart.md`](./memory/dsh-restart.md) | 会话内重启 DSH 必失败：aux 进程与 DSH 同生共死 |
+| [`memory/dsh-autostart.md`](./memory/dsh-autostart.md) | Web 端自启：计划任务登录触发；三个必须覆盖的默认值 |
 | [`memory/dsh-workbuddy-connect.md`](./memory/dsh-workbuddy-connect.md) | WorkBuddy 接 DSH：凭据顺序、端点、固定档位、可见性、签到 |
 | [`memory/dsh-remote.md`](./memory/dsh-remote.md) | 手机遥控 DSH：link 安装、`wire.js` 重建、配对状态 |
 | [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
