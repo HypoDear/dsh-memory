@@ -48,6 +48,7 @@ read_mcp_resource(server="github",
 | [`memory/dsh-workbuddy-connect.md`](./memory/dsh-workbuddy-connect.md) | WorkBuddy 接 DSH：凭据顺序、端点、固定档位、可见性、签到 |
 | [`memory/dsh-remote.md`](./memory/dsh-remote.md) | 手机遥控桌面 DSH：link 安装、`wire.js` 重建、配对状态 |
 | [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
+| [`memory/windows-tweaks.md`](./memory/windows-tweaks.md) | 系统调优：暂停更新上限、Win10 右键菜单、卓越性能方案 |
 | [`SPEC.md`](./SPEC.md) | 记忆格式与流程 |
 
 `~/.dsh/AGENTS.md` 是各设备一致的**极小指针**，只写「去哪读」，几乎不变。

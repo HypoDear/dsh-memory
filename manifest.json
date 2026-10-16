@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-15",
+  "updated": "2026-10-16",
   "docs": [
     {
       "slug": "readme",
@@ -52,6 +52,13 @@
       "title": "Windows 脚本坑",
       "summary": "cmd 编码、URL 的 &、软链接验证、引号",
       "tags": ["windows", "scripting"]
+    },
+    {
+      "slug": "windows-tweaks",
+      "file": "memory/windows-tweaks.md",
+      "title": "Windows 系统调优",
+      "summary": "暂停更新上限、Win10 右键菜单、卓越性能方案",
+      "tags": ["windows", "registry", "powercfg", "tweaks"]
     }
   ]
 }
