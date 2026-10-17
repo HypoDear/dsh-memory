@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-16",
+  "updated": "2026-10-17",
   "docs": [
     {
       "slug": "readme",
@@ -26,24 +26,24 @@
   ],
   "memories": [
     {
-      "slug": "dsh-environment",
-      "file": "memory/dsh-environment.md",
+      "slug": "dsh-env",
+      "file": "memory/dsh-env.md",
       "title": "本机 DSH 环境",
       "summary": "只用 web 端；插件目标一律 --profile web",
       "tags": ["dsh", "environment"]
     },
     {
-      "slug": "dsh-mcp",
-      "file": "memory/dsh-mcp.md",
-      "title": "DSH 接 MCP",
-      "summary": "五种装载形式；home/profile 层 patch 热生效，bundle 层与源码要重启",
-      "tags": ["dsh", "mcp", "hmr"]
+      "slug": "dsh-launcher",
+      "file": "memory/dsh-launcher.md",
+      "title": "DSH Web 启动",
+      "summary": "一个快捷方式弹菜单；无自启无守卫；--no-open 与性能坑",
+      "tags": ["dsh", "launcher", "windows"]
     },
     {
-      "slug": "dsh-plugin-id-clash",
-      "file": "memory/dsh-plugin-id-clash.md",
-      "title": "DSH 行 id 撞车",
-      "summary": "home 层沿用 bundle 的行 id → 那个 bundle 永远卸不掉",
+      "slug": "dsh-config",
+      "file": "memory/dsh-config.md",
+      "title": "DSH 配置层",
+      "summary": "MCP 五种装载形式；哪层热生效；行 id 撞车导致 bundle-in-use",
       "tags": ["dsh", "mcp", "plugin", "hmr"]
     },
     {
@@ -54,39 +54,18 @@
       "tags": ["dsh", "restart", "windows"]
     },
     {
-      "slug": "dsh-autostart",
-      "file": "memory/dsh-autostart.md",
-      "title": "DSH Web 自启",
-      "summary": "计划任务登录触发；覆盖 PT72H 与电池默认值；Delay 与守卫正则两个陷阱",
-      "tags": ["dsh", "autostart", "windows", "taskscheduler"]
-    },
-    {
-      "slug": "dsh-workbuddy-connect",
-      "file": "memory/dsh-workbuddy-connect.md",
-      "title": "WorkBuddy 接入（自有分支）",
-      "summary": "凭据顺序、端点、固定推理档位 high、可见性、签到",
-      "tags": ["workbuddy", "dsh", "credential", "plugin"]
-    },
-    {
-      "slug": "dsh-remote",
-      "file": "memory/dsh-remote.md",
-      "title": "手机遥控 DSH",
-      "summary": "link 安装、wire.js 自上游 ZCode 重建、配对状态敏感",
-      "tags": ["dsh", "remote", "plugin"]
+      "slug": "dsh-plugins",
+      "file": "memory/dsh-plugins.md",
+      "title": "本机自研插件",
+      "summary": "dsh-remote 与 workbuddy：装法、凭据、端点、签到",
+      "tags": ["dsh", "plugin", "remote", "workbuddy"]
     },
     {
       "slug": "windows",
       "file": "memory/windows.md",
-      "title": "Windows 脚本坑",
-      "summary": "cmd 编码、URL 的 &、软链接验证、引号",
-      "tags": ["windows", "scripting"]
-    },
-    {
-      "slug": "windows-tweaks",
-      "file": "memory/windows-tweaks.md",
-      "title": "Windows 系统调优",
-      "summary": "暂停更新上限、Win10 右键菜单、卓越性能方案",
-      "tags": ["windows", "registry", "powercfg", "tweaks"]
+      "title": "Windows 脚本坑与调优",
+      "summary": "cmd 编码、ps1 BOM、URL 的 &、软链接、送回收站；暂停更新/右键菜单/卓越性能",
+      "tags": ["windows", "scripting", "registry", "tweaks"]
     }
   ]
 }

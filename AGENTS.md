@@ -30,13 +30,18 @@ read_mcp_resource(server="github",
 ### DSH 配置
 - **bundle patch 新增条目必须包在 `- insert:` 里**，裸顶层 `- id:` 匹配不到会**静默丢弃**。
 - **profile patch 是整块替换，不是深合并** —— 覆盖某条目要重述所有想保留的字段。
-- **`.cmd` 必须纯 ASCII**（cmd.exe 按 GBK 读），逻辑写进 `.mjs`。
+- **`.cmd` 必须纯 ASCII**；含中文的 `.ps1` 必须 **UTF-8 带 BOM**。
 - **改配置要不要重启，看写在哪一层**：home/profile 层 patch 被 `dsh-hmr` 监视、**热生效**；
   bundle 自带 patch 与插件 JS 源码**不被监视、必须重启**。详见
-  [`memory/dsh-mcp.md`](./memory/dsh-mcp.md)。
+  [`memory/dsh-config.md`](./memory/dsh-config.md)。
 - **把 bundle 里的行搬到 home/profile 层时，必须换 `id`** —— 沿用同名 id 会让插件页
   判定 `bundle-in-use`，导致那个 bundle **永远卸不掉**（重启无用）。
-  详见 [`memory/dsh-plugin-id-clash.md`](./memory/dsh-plugin-id-clash.md)。
+  详见 [`memory/dsh-config.md`](./memory/dsh-config.md)。
+
+### 启动与重启
+- **启动/重启只能点任务栏的 DSH 鲸鱼图标**（弹菜单选）。没有开机自启、没有崩溃重拉。
+- **agent 的 shell 是 DSH 的后代**，从会话内重启必失败 —— 见
+  [`memory/dsh-restart.md`](./memory/dsh-restart.md)。
 
 ### 删除类操作
 - **优先送回收站**，不要直接删。
@@ -46,21 +51,18 @@ read_mcp_resource(server="github",
 
 ### 本仓库
 - ⚠️ **公开仓库**：绝不写入密钥、令牌、密码、个人隐私（姓名/电话/邮箱/账号 id）。
-- 只记**关键节点和指导方向**，不记探索过程。
+- 只记**关键节点和指导方向**，不记探索过程与历史尝试。
 
 ## 四、索引
 
 | 文件 | 一句话 |
 |---|---|
-| [`memory/dsh-environment.md`](./memory/dsh-environment.md) | 本机只用 web 端；插件目标一律 `--profile web` |
-| [`memory/dsh-mcp.md`](./memory/dsh-mcp.md) | MCP 装载五种形式；哪层改动热生效、哪层要重启 |
-| [`memory/dsh-plugin-id-clash.md`](./memory/dsh-plugin-id-clash.md) | 行 id 与 bundle 撞车 → 那个 bundle 永远卸不掉 |
-| [`memory/dsh-restart.md`](./memory/dsh-restart.md) | 会话内重启 DSH 必失败：aux 进程与 DSH 同生共死 |
-| [`memory/dsh-autostart.md`](./memory/dsh-autostart.md) | Web 端自启：计划任务登录触发；三个必须覆盖的默认值 |
-| [`memory/dsh-workbuddy-connect.md`](./memory/dsh-workbuddy-connect.md) | WorkBuddy 接 DSH：凭据顺序、端点、固定档位、可见性、签到 |
-| [`memory/dsh-remote.md`](./memory/dsh-remote.md) | 手机遥控 DSH：link 安装、`wire.js` 重建、配对状态 |
-| [`memory/windows.md`](./memory/windows.md) | Windows 脚本四坑：cmd 编码、URL 的 `&`、软链接验证、引号 |
-| [`memory/windows-tweaks.md`](./memory/windows-tweaks.md) | 系统调优：暂停更新上限、Win10 右键菜单、卓越性能方案 |
+| [`memory/dsh-env.md`](./memory/dsh-env.md) | 本机只用 web 端；插件目标一律 `--profile web` |
+| [`memory/dsh-launcher.md`](./memory/dsh-launcher.md) | 启动/重启靠一个快捷方式；无自启无守卫 |
+| [`memory/dsh-config.md`](./memory/dsh-config.md) | MCP 怎么装、哪层改动热生效、行 id 撞车的坑 |
+| [`memory/dsh-restart.md`](./memory/dsh-restart.md) | 会话内重启必失败：aux 进程与 DSH 同生共死 |
+| [`memory/dsh-plugins.md`](./memory/dsh-plugins.md) | dsh-remote 与 workbuddy：装法、凭据、端点、签到 |
+| [`memory/windows.md`](./memory/windows.md) | Windows 脚本坑 + 系统调优 |
 | [`SPEC.md`](./SPEC.md) | 记忆格式与流程 |
 
 `~/.dsh/AGENTS.md` 是各设备一致的**极小指针**，只写「去哪读」，几乎不变。
