@@ -46,10 +46,19 @@ Test-Path ([IO.Path]::GetFullPath($abs))
 - 最省事的判断其实是 `Test-Path $link` 本身
 - **目录链接**用 `Test-Path "$link\某文件"`；**文件链接**这样测会返回 `False`
 
-### ⑤ 删软链用 `[System.IO.Directory]::Delete($link)`
+### ⑤ 删除：优先送回收站
 
-只删链接本身，不动目标。送回收站 / 删目录的通用写法见
-[`toolchain.md`](./toolchain.md) 第 7 节。
+没有 `rm -rf` 那份从容，删错了要有退路：
+
+```powershell
+Add-Type -AssemblyName Microsoft.VisualBasic
+[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f, 'OnlyErrorDialogs', 'SendToRecycleBin')
+[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($d, 'OnlyErrorDialogs', 'SendToRecycleBin')
+```
+
+- **删前先确认绝对路径就是目标**：`(Resolve-Path $p).Path -eq $p`
+- **删软链**用 `[System.IO.Directory]::Delete($link)` —— 只删链接，不动目标；
+  删完回头确认源目录仍在
 
 ## 二、系统调优
 
