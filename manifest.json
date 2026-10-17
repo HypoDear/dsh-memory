@@ -26,6 +26,13 @@
   ],
   "memories": [
     {
+      "slug": "conversation",
+      "file": "memory/conversation.md",
+      "title": "对话规则",
+      "summary": "先结论再依据；不确定就查或说不知道；动手前先列计划与确认破坏性操作",
+      "tags": ["conversation", "workflow"]
+    },
+    {
       "slug": "dsh-env",
       "file": "memory/dsh-env.md",
       "title": "本机 DSH 环境",
@@ -36,14 +43,14 @@
       "slug": "dsh-launcher",
       "file": "memory/dsh-launcher.md",
       "title": "DSH Web 启动",
-      "summary": "一个快捷方式弹菜单；无自启无守卫；--no-open 与性能坑",
+      "summary": "原生 exe 弹菜单；无自启无守卫；--no-open 与性能坑",
       "tags": ["dsh", "launcher", "windows"]
     },
     {
       "slug": "dsh-config",
       "file": "memory/dsh-config.md",
       "title": "DSH 配置层",
-      "summary": "MCP 五种装载形式；哪层热生效；行 id 撞车导致 bundle-in-use",
+      "summary": "MCP 五种装载形式；哪层热生效；client.js 不用重启；行 id 撞车",
       "tags": ["dsh", "mcp", "plugin", "hmr"]
     },
     {
@@ -61,10 +68,17 @@
       "tags": ["dsh", "plugin", "remote", "workbuddy"]
     },
     {
+      "slug": "toolchain",
+      "file": "memory/toolchain.md",
+      "title": "工具链",
+      "summary": "没 git 怎么操作 GitHub：用户级 token、提交五步、三个坑、送回收站",
+      "tags": ["toolchain", "github", "api"]
+    },
+    {
       "slug": "windows",
       "file": "memory/windows.md",
       "title": "Windows 脚本坑与调优",
-      "summary": "cmd 编码、ps1 BOM、URL 的 &、软链接、送回收站；暂停更新/右键菜单/卓越性能",
+      "summary": "cmd 编码、ps1 BOM、URL 的 &、软链接；暂停更新/右键菜单/卓越性能",
       "tags": ["windows", "scripting", "registry", "tweaks"]
     }
   ]

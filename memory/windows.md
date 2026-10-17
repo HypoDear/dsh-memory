@@ -46,17 +46,10 @@ Test-Path ([IO.Path]::GetFullPath($abs))
 - 最省事的判断其实是 `Test-Path $link` 本身
 - **目录链接**用 `Test-Path "$link\某文件"`；**文件链接**这样测会返回 `False`
 
-### ⑤ 送回收站
+### ⑤ 删软链用 `[System.IO.Directory]::Delete($link)`
 
-```powershell
-Add-Type -AssemblyName Microsoft.VisualBasic
-$ui = [Microsoft.VisualBasic.FileIO.UIOption]::OnlyErrorDialogs
-$rc = [Microsoft.VisualBasic.FileIO.RecycleOption]::SendToRecycleBin
-[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($dir, $ui, $rc)   # 目录
-[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($file, $ui, $rc)      # 文件
-```
-
-删软链后用 `[System.IO.Directory]::Delete($link)` —— 只删链接本身，不动目标。
+只删链接本身，不动目标。送回收站 / 删目录的通用写法见
+[`toolchain.md`](./toolchain.md) 第 7 节。
 
 ## 二、系统调优
 

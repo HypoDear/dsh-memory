@@ -50,7 +50,7 @@ read_mcp_resource(server="github",
 
 ### 记忆纪律
 - **写之前过 [SPEC 第三节](./SPEC.md) 的五道门槛** —— 「知道了更好」的不写
-- **规模上限**：`memory/` ≤ **8 篇**、单篇 ≤ **150 行**；超限**先合并或删减，不加篇**
+- **规模上限**：`memory/` ≤ **10 篇**、单篇 ≤ **150 行**；超限**先合并或删减，不加篇**
 - **结论必须可判证据**：实测带数值与条件，推断标「未验证」。
   **验证命令必须当场跑通**；不写过时快照与历史尝试
 
@@ -62,11 +62,13 @@ read_mcp_resource(server="github",
 
 | 文件 | 一句话 |
 |---|---|
+| [`memory/conversation.md`](./memory/conversation.md) | **对话规则**：先结论、不确定不猜、动手前先问 |
 | [`memory/dsh-env.md`](./memory/dsh-env.md) | 只用 web 端；插件目标一律 `--profile web` |
-| [`memory/dsh-launcher.md`](./memory/dsh-launcher.md) | 启动/重启靠一个快捷方式；无自启无守卫 |
-| [`memory/dsh-config.md`](./memory/dsh-config.md) | MCP 怎么装、哪层热生效、行 id 撞车的坑 |
+| [`memory/dsh-launcher.md`](./memory/dsh-launcher.md) | 启动/重启靠一个 exe 快捷方式；无自启无守卫 |
+| [`memory/dsh-config.md`](./memory/dsh-config.md) | MCP 怎么装、哪层热生效、client.js 不用重启 |
 | [`memory/dsh-restart.md`](./memory/dsh-restart.md) | 会话内重启必失败：aux 进程与 DSH 同生共死 |
 | [`memory/dsh-plugins.md`](./memory/dsh-plugins.md) | dsh-remote 与 workbuddy：装法、凭据、端点、签到 |
+| [`memory/toolchain.md`](./memory/toolchain.md) | 没 git 怎么操作 GitHub：token、提交五步、三个坑 |
 | [`memory/windows.md`](./memory/windows.md) | Windows 脚本坑 + 系统调优 |
 | [`SPEC.md`](./SPEC.md) | 记忆格式与写入纪律 |
 

@@ -50,12 +50,34 @@
 | `$DSH_HOME/cordis.patch.yml`（home 层） | ⚡ 改完即生效 |
 | `profiles/<name>/cordis.patch.yml`（profile 层） | ⚡ 改完即生效 |
 | `package.json` 的 `bundles` 列表 | ⚡ 会触发重组 |
-| **bundle 包自带的 patch** | 🔁 **必须重启**（不被监视） |
-| **插件 JS 源码（`lib/*.js`）** | 🔁 **必须重启** |
+| **bundle 包自带的 patch** | 🔁 **必须重启**（`dsh-hmr` 不监视） |
+| **插件 `lib/index.js`（host 侧）** | 🔁 **必须重启**（跑在 Node 进程内） |
+| **插件 `lib/client.js`（前端产物）** | ⚡ **不用重启** —— 见下 |
 
-热生效的前提是 `hmr` 条目未被禁用。base bundle 默认
+热生效的前提是 `dsh-hmr` 的 `hmr` 条目未被禁用。base bundle 默认
 `disabled: !!js '!ctx.get("profileContext")'` —— web 有 `profileContext`，所以开着。
-但它默认 `root: []`，即**只监视配置文件、不监视模块源码**。
+但它默认 `root: []`，即**只监视配置文件、不监视模块源码**（所以 host 侧 JS 仍需重启）。
+
+### 前端 `client.js` 为什么不用重启
+
+**另有一条机制在管它**，与 `dsh-hmr` 无关：
+
+`dsh-client-hmr` **每 500ms 轮询**所有插件 client bundle 的 stat
+（`pollIntervalMs` 默认 500，注释说明是刻意的——网络挂载不产生 inotify 事件）：
+
+```js
+// dsh-client-hmr/lib/index.js
+const timer = setInterval(pollWatches, pollIntervalMs);   // 第 108 行
+```
+
+比对 **mtime / ctime / size**，一变就调 `clientModules.rebuilt(id)`
+（`dsh-client-modules/lib/index.js` 第 607 行）重读磁盘，再通过 `/plugins/events`
+的 SSE 推 `rebuilt` 帧，**浏览器自动重载该模块**。
+
+所以改 `lib/client.js` 后**最多等半秒，刷新都不用**。
+⚠️ 前提是浏览器页面开着且 SSE 连着；页面关了就下次打开时生效。
+
+**别再以为改前端产物要重启 DSH** —— 只有 `lib/index.js` 才要。
 
 ### 行 id 与 bundle 撞车 → 那个 bundle 永远卸不掉
 
