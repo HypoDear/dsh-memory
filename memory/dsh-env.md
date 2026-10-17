@@ -17,7 +17,8 @@
 
 ### 当前 web profile 装的东西
 
-- bundle：`dsh-workbuddy-connect`、`dsh-remote`（都用 `link:`，源码目录即运行代码）
+- bundle 顺序：`@deepseek-ai/dsh-base` → `@deepseek-ai/dsh-web-app` → `dsh-workbuddy-connect` → `dsh-remote`
+  （前两个宿主必需，后两个自研、以 `link:` 安装，源码目录即运行代码）
 - MCP 走 home 层 `$DSH_HOME/cordis.patch.yml`（热生效，见 [`dsh-config.md`](./dsh-config.md)）
 
 ### 判断某个 profile 能不能用 CLI 管

@@ -18,10 +18,10 @@
 
 ### 关键事实
 
-- **不走局域网**：经公共中继 + 第三方遥控网页；手机端无需装 App，但电脑端 DSH 必须保持运行且联网。
-- 链路只有逐跳传输加密，**不是端到端加密**；遥控网页与中继由第三方运营。
-- 入口在**侧边栏**：账号头像正上方一行，图标是**手机 + 信号弧**（自绘 SVG）。展开态显示「远程控制」文字，收起态只显图标。
-- 侧边栏图标不依赖宿主 primitives（自绘），状态色：已连接=绿 / 连接中·等待·重连=黄 / 失败=红。
+- **不走局域网**：经公共中继 + 第三方遥控网页；手机端无需装 App，但电脑端 DSH 必须保持运行且联网
+- 链路只有逐跳传输加密，**不是端到端加密**；遥控网页与中继由第三方运营
+- 入口在**侧边栏**账号头像正上方一行，图标是**手机 + 信号弧**（自绘 SVG，不依赖宿主 primitives）。
+  展开态显示「远程控制」文字，收起态只显图标；状态色：已连接=绿 / 连接中·等待·重连=黄 / 失败=红
 
 ### 配对状态（敏感）
 
@@ -37,8 +37,7 @@
 ### 单实例约束
 
 `state.json` 的 `owner.pid` 仲裁：**两个 DSH 实例会互踢**，表现为 `diagnostics.jsonl` 里成片的
-`Relay rejected the connection (KICKED)`，并**弄坏手机遥控链接**。
-所以别同时跑两个 `dsh web` —— 见 [`dsh-launcher.md`](./dsh-launcher.md) 的单实例硬约束。
+`Relay rejected the connection (KICKED)`，并**弄坏手机遥控链接** —— 见 [`dsh-launcher.md`](./dsh-launcher.md)。
 
 ---
 
@@ -60,14 +59,27 @@ pnpm install --prod      # ⚠️ 必须
 
 link 运行时解析的就是本仓库的 `node_modules`，**完整安装会把 `@deepseek-ai/*`（peerDependency）的副本放进插件目录**，运行时优先于宿主同名包被解析，等于同进程两份 `cordis` / `pi-ai`。剪成生产依赖后只剩插件该自带的 `@earendil-works/pi-ai`。
 
-⚠️ **但命令行必须自带宿主工具包** —— 两者是不同的解析路径：
+⚠️ **但构建 CLI 与运行是两条不同的解析路径**：
 
 | 产物 | 谁加载 | `@deepseek-ai/*` 怎么办 |
 |---|---|---|
 | `lib/index.js` | DSH 宿主内嵌加载 | **必须留在外部**，由宿主提供 |
-| `lib/bin.js` | 独立 node 进程 | **必须内联**（`tsdown.config.ts` 的 `alwaysBundle`），否则启动即 `ERR_MODULE_NOT_FOUND` |
+| `lib/bin.js` | 独立 node 进程 | **必须内联**（`alwaysBundle`），否则启动即 `ERR_MODULE_NOT_FOUND` |
 
-所以 `index` 与 `bin` **刻意分成两份配置、不共享 chunk**。**改构建配置时别把两者合回多入口单次构建**，否则内联副本会被拖进宿主那份 = 自造双实例。
+**`alwaysBundle` 单独写是无效的**：tsdown 只内联**能实际解析到**的包。
+`--prod` 后 `@deepseek-ai/*` 不在 `node_modules` → 解析失败 → **静默保留 `import`**，
+构建显示成功、产物却在启动时崩。
+
+实测（2026-10-17）：无链接时 `lib/bin.js` 184,290 bytes 且 import 保持外部，
+`dsh plugin --profile web exec dsh-workbuddy-connect doctor` 直接
+`ERR_MODULE_NOT_FOUND`；把宿主的 `@deepseek-ai` 临时 junction 进来后，
+产物 194,648 bytes、`withFileLock` 被内联、doctor 正常返回 `hints: []`。
+
+**所以重建 CLI 必须走 `pnpm run build:cli`**（`scripts/build-cli.ps1`）：
+临时 junction → tsdown → 校验 `lib/bin.js` 无 `from "@deepseek-ai/` 且有
+`withFileLock` → 移除 junction。校验不过就报错退出。
+
+`index` 与 `bin` **刻意分成两份配置、不共享 chunk**。**别把两者合回多入口单次构建**，否则内联副本会被拖进宿主那份 = 自造双实例。
 
 ### 凭据
 
@@ -90,25 +102,22 @@ link 运行时解析的就是本仓库的 `node_modules`，**完整安装会把 
 
 ### 推理档位（本分支固定 high）
 
-- 会推理的模型只提供、只发送 `high`；不会推理的不发 `reasoning_effort`
-- 值在 `src/adapter.ts` 的 `FIXED_REASONING_EFFORT`，改这一处即可
-- 依据：实测两目录里凡声明档位集合者**都含 `high`**（国内 7/7、国际 15/15）
+会推理的模型只提供、只发送 `high`；不会推理的不发 `reasoning_effort`。
+值在 `src/adapter.ts` 的 `FIXED_REASONING_EFFORT`。依据：实测两目录里凡声明档位集合者**都含 `high`**（国内 7/7、国际 15/15）。
 
 ### 签到（自动化）
 
-- **只有国内版有签到活动**；国际版上游返回「活动未开启或已过期」。
-- ⚠️ 两平台 `code` 都是 `10001` 但含义不同（国内 = 今天已签，国际 = 活动未开启）—— **看文案**。
+- **只有国内版有签到活动**；国际版上游返回「活动未开启或已过期」
+- ⚠️ 两平台 `code` 都是 `10001` 但含义不同（国内 = 今天已签，国际 = 活动未开启）—— **看文案**
 - 定时任务 `\WorkBuddyCheckin` **每日 09:00** 跑 `workbuddy-login\checkin-silent.cmd`
-  → `checkin-notify.ps1` → `node checkin.mjs claim --variant cn --json`，结果弹 **Windows Toast** 通知。
-- ⚠️ 通知**必须用 Windows PowerShell 5.1** 发（WinRT `Windows.UI.Notifications`，pwsh 7 加载不了该类型）。
-- `checkin.mjs` 支持 `--json`：stdout 只出一行 JSON，中文解说走 stderr。
-- 曾经的「每 4 小时轮询」任务（`WorkBuddyCheckinPoll`）**已删除** —— 国际版没有签到活动，一半请求是白跑的。
+  → `checkin-notify.ps1` → `node checkin.mjs claim --variant cn --json`，结果弹 **Windows Toast**
+- ⚠️ 通知**必须用 Windows PowerShell 5.1** 发（WinRT `Windows.UI.Notifications`，pwsh 7 加载不了该类型）
+- 曾经的「每 4 小时轮询」任务**已删除** —— 国际版没有签到活动，一半请求白跑
 
 ### 模型可见性
 
 `$DSH_HOME/.workbuddy-model-visibility.json`（国内）/ `.workbuddy-ai-model-visibility.json`（国际），
-**每账号一份 disabled 名单**（不是白名单），只隐藏列出的 id。
-正常由插件设置页维护；手改先备份，改完重启 DSH。
+**每账号一份 disabled 名单**（不是白名单）。正常由插件设置页维护；手改先备份、改完重启。
 
 ### 命令行
 
